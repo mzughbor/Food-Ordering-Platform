@@ -1,0 +1,41 @@
+{% extends 'users/base.html' %}
+
+{% block title %}Delivery Dashboard - Food Ordering Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Delivery Dashboard</h2>
+        <p>Welcome, {{ user.username }}! Manage your deliveries here.</p>
+        
+        {% if orders %}
+            <div class="row">
+                {% for order in orders %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Order #{{ order.id }}</h5>
+                                <p class="card-text">
+                                    <strong>Customer:</strong> {{ order.user.username }}<br>
+                                    <strong>Restaurant:</strong> {{ order.restaurant.name }}<br>
+                                    <strong>Total:</strong> ${{ order.total_amount }}<br>
+                                    <strong>Status:</strong> {{ order.get_status_display }}
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ order.created_at|date:"F d, Y H:i" }}</small>
+                                </p>
+                                <button class="btn btn-success">Accept Delivery</button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <h4>No orders available</h4>
+                <p>There are currently no confirmed orders available for delivery.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
