@@ -1,0 +1,229 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Restaurant Orders - {{ restaurant.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 col-md-3">
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'restaurants:restaurant_dashboard' %}" class="list-group-item list-group-item-action">
+                            <ion-icon name="grid-outline" class="me-2"></ion-icon>
+                            Dashboard
+                        </a>
+                        <a href="{% url 'restaurants:manage_meals' %}" class="list-group-item list-group-item-action">
+                            <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                            Manage Meals
+                        </a>
+                        <a href="{% url 'restaurants:restaurant_orders' %}" class="list-group-item list-group-item-action active">
+                            <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                            Orders
+                        </a>
+                        <a href="{% url 'restaurants:restaurant_settings' %}" class="list-group-item list-group-item-action">
+                            <ion-icon name="settings-outline" class="me-2"></ion-icon>
+                            Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-10 col-md-9">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-0">Restaurant Orders</h2>
+                    <p class="text-muted mb-0">{{ restaurant.name }} - {{ orders.paginator.count }} total orders</p>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0 fw-bold">Order History</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold">#{{ order.id }}</span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">{{ order.user.get_full_name|default:order.user.username }}</h6>
+                                                <small class="text-muted">{{ order.user.email }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                {% for item in order.items.all %}
+                                                    <span class="badge bg-light text-dark">
+                                                        {{ item.meal.name }} x{{ item.quantity }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success">${{ order.total_amount }}</span>
+                                        </td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif order.status == 'confirmed' %}
+                                                <span class="badge bg-primary">Confirmed</span>
+                                            {% elif order.status == 'delivered' %}
+                                                <span class="badge bg-success">Delivered</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <small class="fw-bold">{{ order.created_at|date:"M d, Y" }}</small><br>
+                                                <small class="text-muted">{{ order.created_at|time:"g:i A" }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-info" 
+                                                        onclick="viewOrderDetails({{ order.id }})" 
+                                                        title="View Details">
+                                                    <ion-icon name="eye-outline"></ion-icon>
+                                                </button>
+                                                {% if order.status == 'pending' %}
+                                                <button class="btn btn-outline-success" 
+                                                        onclick="updateOrderStatus({{ order.id }}, 'confirmed')" 
+                                                        title="Confirm Order">
+                                                    <ion-icon name="checkmark-outline"></ion-icon>
+                                                </button>
+                                                {% elif order.status == 'confirmed' %}
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="updateOrderStatus({{ order.id }}, 'delivered')" 
+                                                        title="Mark as Delivered">
+                                                    <ion-icon name="car-outline"></ion-icon>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if orders.has_other_pages %}
+                        <div class="card-footer">
+                            <nav aria-label="Orders pagination">
+                                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                                    {% if orders.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1">&laquo;&laquo;</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ orders.previous_page_number }}">&laquo;</a>
+                                        </li>
+                                    {% endif %}
+                                    
+                                    {% for num in orders.paginator.page_range %}
+                                        {% if orders.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if orders.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ orders.next_page_number }}">&raquo;</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ orders.paginator.num_pages }}">&raquo;&raquo;</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <ion-icon name="receipt-outline" style="font-size: 64px; color: #ccc;" class="mb-3"></ion-icon>
+                            <h5 class="text-muted">No orders yet</h5>
+                            <p class="text-muted">Orders will appear here once customers start placing them.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderDetailsContent">
+                <!-- Order details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Management Scripts -->
+<script>
+function viewOrderDetails(orderId) {
+    // This would typically fetch order details via AJAX
+    // For now, we'll show a placeholder
+    document.getElementById('orderDetailsContent').innerHTML = `
+        <div class="text-center py-4">
+            <ion-icon name="hourglass-outline" style="font-size: 48px; color: #ccc;" class="mb-3"></ion-icon>
+            <p class="text-muted">Order details for order #${orderId} would be loaded here.</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+    modal.show();
+}
+
+function updateOrderStatus(orderId, newStatus) {
+    if (confirm(`Are you sure you want to update this order to ${newStatus}?`)) {
+        // This would typically send an AJAX request to update the order status
+        // For now, we'll just show a success message
+        alert(`Order #${orderId} status updated to ${newStatus}!`);
+        
+        // In a real implementation, you would:
+        // 1. Send AJAX request to update order status
+        // 2. Update the UI to reflect the new status
+        // 3. Show success/error messages
+    }
+}
+</script>
+{% endblock %}

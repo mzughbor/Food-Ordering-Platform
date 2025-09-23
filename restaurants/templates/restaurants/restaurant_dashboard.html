@@ -1,0 +1,599 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Restaurant Dashboard - FoodOrdering{% endblock %}
+
+{% block content %}
+<!-- Restaurant Dashboard -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 restaurant-sidebar p-0">
+            <div class="p-3">
+                <h5 class="text-dark fw-bold mb-4">
+                    <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                    Restaurant Panel
+                </h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link active text-dark fw-medium" href="{% url 'restaurants:restaurant_dashboard' %}">
+                        <ion-icon name="grid-outline" class="me-2"></ion-icon>
+                        Overview
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="{% url 'restaurants:restaurant_orders' %}">
+                        <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                        Orders
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="{% url 'restaurants:manage_meals' %}">
+                        <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                        Manage Meals
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="{% url 'restaurants:restaurant_settings' %}">
+                        <ion-icon name="settings-outline" class="me-2"></ion-icon>
+                        Settings
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="{% url 'users:home' %}">
+                        <ion-icon name="arrow-back-outline" class="me-2"></ion-icon>
+                        Back to Site
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 restaurant-content">
+            <!-- Restaurant Header -->
+            <div class="restaurant-header">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="text-dark fw-bold mb-0">{{ restaurant.name|default:"My Restaurant" }} - Owner</h2>
+                            <p class="text-muted mb-0">Overview for orders and restaurant management</p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted me-3">Welcome, {{ user.username }}</span>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <ion-icon name="person-circle-outline" class="me-1"></ion-icon>
+                                        {{ user.get_role_display }}
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
+                                        <li><a class="dropdown-item" href="#settings">Settings</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="container-fluid py-4">
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="fw-bold text-dark mb-3">Quick Actions</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <a href="{% url 'restaurants:add_meal' %}" class="btn btn-primary w-100">
+                                            <ion-icon name="add-outline" class="me-2"></ion-icon>
+                                            Add New Meal
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="{% url 'restaurants:manage_meals' %}" class="btn btn-outline-primary w-100">
+                                            <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                                            Manage Meals
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="{% url 'restaurants:restaurant_orders' %}" class="btn btn-outline-success w-100">
+                                            <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                                            View Orders
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="{% url 'restaurants:restaurant_settings' %}" class="btn btn-outline-secondary w-100">
+                                            <ion-icon name="settings-outline" class="me-2"></ion-icon>
+                                            Restaurant Settings
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Overview Section -->
+                <div class="orders-table mb-4">
+                    <div class="p-3 border-bottom">
+                        <h4 class="text-dark fw-bold mb-0">Recent Orders</h4>
+                    </div>
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
+                                    Date
+                                </th>
+                                <th>
+                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
+                                    Order #
+                                </th>
+                                <th>
+                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
+                                    Customer
+                                </th>
+                                <th>
+                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
+                                    Status
+                                </th>
+                                <th>
+                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
+                                    Amount
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>{{ order.created_at|date:"Y-m-d" }}</td>
+                                <td>#{{ order.id }}</td>
+                                <td>{{ order.user.username }}</td>
+                                <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                                <td class="fw-bold text-{% if order.status == 'delivered' %}success{% elif order.status == 'confirmed' %}warning{% elif order.status == 'cancelled' %}danger{% else %}info{% endif %}">${{ order.total_amount }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                        <ion-icon name="eye-outline"></ion-icon>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success">
+                                        <ion-icon name="checkmark-outline"></ion-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No orders yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Meals Management Section -->
+                <div class="meals-table mb-4">
+                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h4 class="text-dark fw-bold mb-0">Meals</h4>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'restaurants:manage_meals' %}" class="btn btn-outline-primary btn-sm">
+                                <ion-icon name="create-outline" class="me-1"></ion-icon>
+                                Manage All
+                            </a>
+                            <a href="{% url 'restaurants:add_meal' %}" class="btn btn-create btn-sm">
+                                <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                Add New
+                            </a>
+                        </div>
+                    </div>
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name (ingredients)</th>
+                                <th>Price</th>
+                                <th>Available</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for meal in meals %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                            {{ meal.name|first|upper }}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ meal.name }}</h6>
+                                            <small class="text-muted">{{ meal.description|truncatechars:30 }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="fw-bold">${{ meal.price }}</td>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" {% if meal.is_available %}checked{% endif %}>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                        <ion-icon name="create-outline"></ion-icon>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <ion-icon name="trash-outline"></ion-icon>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">No meals yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Pagination -->
+                    <div class="p-3 border-top">
+                        <nav aria-label="Meals pagination">
+                            <ul class="pagination pagination-sm mb-0 justify-content-center">
+                                <li class="page-item">
+                                    <a class="page-link" href="#" aria-label="First">
+                                        <span aria-hidden="true">&laquo;&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">1</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">2</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">3</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#" aria-label="Last">
+                                        <span aria-hidden="true">&raquo;&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Create New Meal Form -->
+                <div class="meal-form" id="createMealForm" style="display: none;">
+                    <h4 class="text-dark fw-bold mb-3">Create New Meal</h4>
+                    
+                    <form method="post" action="{% url 'restaurants:add_meal' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="mealName" name="name" placeholder="Name" required>
+                                    <label for="mealName">Name</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="mealPrice" name="price" placeholder="Price" step="0.01" required>
+                                    <label for="mealPrice">Price</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-floating">
+                                <textarea class="form-control" id="mealDescription" name="description" style="height: 100px" placeholder="Description"></textarea>
+                                <label for="mealDescription">Description</label>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="mealAvailable" name="is_available" checked>
+                                    <label class="form-check-label" for="mealAvailable">
+                                        Available
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-save">
+                                <ion-icon name="save-outline" class="me-1"></ion-icon>
+                                Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Restaurant Profile Settings -->
+                <div class="settings-section">
+                    <h4>Restaurant Profile</h4>
+                    
+                    <form method="post" action="{% url 'restaurants:restaurant_settings' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="restaurantName" name="name" placeholder="Restaurant Name" value="{{ restaurant.name|default:'' }}" required>
+                                    <label for="restaurantName">Restaurant Name</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="restaurantLocation" name="location" placeholder="Location / Address" value="{{ restaurant.location|default:'' }}">
+                                    <label for="restaurantLocation">Location / Address</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-floating">
+                                <textarea class="form-control" id="restaurantDescription" name="description" style="height: 100px" placeholder="Description">{{ restaurant.description|default:'' }}</textarea>
+                                <label for="restaurantDescription">Description</label>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-save">
+                                <ion-icon name="save-outline" class="me-1"></ion-icon>
+                                Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restaurant Dashboard Styles -->
+<style>
+    .restaurant-sidebar {
+        min-height: 100vh;
+        background: var(--bg-light);
+        border-right: 1px solid var(--border-color);
+    }
+    
+    .restaurant-content {
+        min-height: 100vh;
+        background: var(--bg-white);
+    }
+    
+    .restaurant-header {
+        background: var(--bg-white);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 0;
+    }
+    
+    .orders-table {
+        background: var(--bg-white);
+        border-radius: var(--border-radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .orders-table th {
+        background: var(--bg-light);
+        border-bottom: 2px solid var(--border-color);
+        font-weight: 600;
+        color: var(--text-dark);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    
+    .orders-table td {
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-shipped, .status-delivered {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-pending, .status-confirmed {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-processing {
+        background: #cce5ff;
+        color: #004085;
+    }
+    
+    .meals-table {
+        background: var(--bg-white);
+        border-radius: var(--border-radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .meals-table th {
+        background: var(--bg-light);
+        border-bottom: 2px solid var(--border-color);
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .meals-table td {
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .meal-form {
+        background: var(--bg-white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .settings-section {
+        background: var(--bg-white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .settings-section h4 {
+        color: var(--text-dark);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-green);
+    }
+    
+    .form-floating > label {
+        color: var(--text-muted);
+    }
+    
+    .btn-save {
+        background: var(--primary-green);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: var(--border-radius-md);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+        background: var(--secondary-green);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .btn-create {
+        background: var(--primary-green);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius-sm);
+        font-weight: 600;
+    }
+    
+    .pagination .page-link {
+        color: var(--primary-green);
+        border-color: var(--border-color);
+    }
+    
+    .pagination .page-link:hover {
+        background-color: var(--primary-green);
+        border-color: var(--primary-green);
+        color: white;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-green);
+        border-color: var(--primary-green);
+    }
+</style>
+
+<!-- Restaurant Dashboard JS -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🍽️ Restaurant Dashboard loaded');
+        
+        // Initialize restaurant functionality
+        initializeRestaurantDashboard();
+    });
+    
+    function initializeRestaurantDashboard() {
+        // Orders table row selection
+        const orderRows = document.querySelectorAll('.orders-table tbody tr');
+        orderRows.forEach(row => {
+            row.addEventListener('click', function() {
+                // Remove active class from all rows
+                orderRows.forEach(r => r.classList.remove('table-active'));
+                // Add active class to clicked row
+                this.classList.add('table-active');
+            });
+        });
+        
+        // Meals table row selection
+        const mealRows = document.querySelectorAll('.meals-table tbody tr');
+        mealRows.forEach(row => {
+            row.addEventListener('click', function() {
+                // Remove active class from all rows
+                mealRows.forEach(r => r.classList.remove('table-active'));
+                // Add active class to clicked row
+                this.classList.add('table-active');
+            });
+        });
+        
+        // Save button functionality
+        const saveButtons = document.querySelectorAll('.btn-save');
+        saveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const section = this.closest('.settings-section, .meal-form');
+                const sectionName = section.querySelector('h4').textContent;
+                
+                // Show success message
+                showNotification(`${sectionName} saved successfully!`, 'success');
+                
+                // Add loading state
+                this.innerHTML = '<ion-icon name="hourglass-outline" class="me-1"></ion-icon>Saving...';
+                this.disabled = true;
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    this.innerHTML = '<ion-icon name="save-outline" class="me-1"></ion-icon>Save';
+                    this.disabled = false;
+                }, 2000);
+            });
+        });
+    }
+    
+    function showCreateMealForm() {
+        const form = document.getElementById('createMealForm');
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            form.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            form.style.display = 'none';
+        }
+    }
+    
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+</script>
+{% endblock %}

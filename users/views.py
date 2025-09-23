@@ -5,7 +5,10 @@ from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse
 from django import forms
+from django.db.models import Count, Sum
 from .models import User
+from restaurants.models import Restaurant
+from orders.models import Order
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -37,24 +40,50 @@ def register_view(request):
 
 
 def login_view(request):
+    form = CustomUserCreationForm()  # Initialize form at the beginning
+    
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            # Redirect based on role
-            if user.role == 'customer':
-                return redirect('meals:meal_list')
-            elif user.role == 'owner':
-                return redirect('restaurants:dashboard')
-            elif user.role == 'admin':
-                return redirect('/admin/')
-            elif user.role == 'delivery':
-                return redirect('orders:delivery_dashboard')
-        else:
-            messages.error(request, 'Invalid username or password.')
-    return render(request, 'users/login.html')
+        # Check if it's a login form or registration form
+        if 'username' in request.POST and 'password' in request.POST and 'login-email' not in request.POST:
+            # Login form
+            username_or_email = request.POST['username']
+            password = request.POST['password']
+            
+            # Try to authenticate with username first
+            user = authenticate(request, username=username_or_email, password=password)
+            
+            # If username authentication fails, try email authentication
+            if user is None:
+                try:
+                    user_obj = User.objects.get(email=username_or_email)
+                    user = authenticate(request, username=user_obj.username, password=password)
+                except User.DoesNotExist:
+                    user = None
+            
+            if user is not None:
+                login(request, user)
+                # Redirect based on role
+                if user.role == 'customer':
+                    return redirect('meals:meal_list')
+                elif user.role == 'owner':
+                    return redirect('restaurants:restaurant_dashboard')
+                elif user.role == 'admin':
+                    return redirect('users:simple_admin_dashboard')
+                elif user.role == 'delivery':
+                    return redirect('orders:delivery_dashboard')
+            else:
+                messages.error(request, 'Invalid username/email or password.')
+        elif 'reg-email' in request.POST or 'email' in request.POST:
+            # Registration form
+            form = CustomUserCreationForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Registration successful! Please log in.')
+                return redirect('users:login')
+            else:
+                messages.error(request, 'Registration failed. Please check your information.')
+
+    return render(request, 'users/login.html', {'form': form})
 
 
 def logout_view(request):
@@ -66,3 +95,121 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     return render(request, 'users/profile.html', {'user': request.user})
+
+
+def home_view(request):
+    return render(request, 'users/home.html')
+
+
+@login_required
+def admin_dashboard_view(request):
+    """Full admin dashboard with detailed management"""
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('users:home')
+    
+    # Get statistics
+    total_users = User.objects.count()
+    total_restaurants = Restaurant.objects.count()
+    total_orders = Order.objects.count()
+    total_revenue = Order.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Get recent data
+    users = User.objects.all()[:10]
+    recent_orders = Order.objects.select_related('user', 'restaurant').order_by('-created_at')[:10]
+    
+    context = {
+        'total_users': total_users,
+        'total_restaurants': total_restaurants,
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'users': users,
+        'recent_orders': recent_orders,
+    }
+    return render(request, 'users/admin_dashboard.html', context)
+
+
+@login_required
+def simple_admin_dashboard_view(request):
+    """Simple admin dashboard with basic overview"""
+    if request.user.role != 'admin':
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('users:home')
+    
+    # Get statistics
+    total_users = User.objects.count()
+    total_restaurants = Restaurant.objects.count()
+    total_orders = Order.objects.count()
+    total_revenue = Order.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Get recent data
+    users = User.objects.all()[:10]
+    recent_orders = Order.objects.select_related('user', 'restaurant').order_by('-created_at')[:5]
+    
+    context = {
+        'total_users': total_users,
+        'total_restaurants': total_restaurants,
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'users': users,
+        'recent_orders': recent_orders,
+    }
+    return render(request, 'users/simple_admin_dashboard.html', context)
+
+
+def business_registration_view(request):
+    """Business registration for restaurant owners"""
+    if request.method == 'POST':
+        # Create user account
+        username = request.POST.get('email')  # Use email as username
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        full_name = request.POST.get('full_name', '')
+        restaurant_name = request.POST.get('restaurant_name', '')
+        phone = request.POST.get('phone', '')
+        address = request.POST.get('address', '')
+        location = request.POST.get('location', '')
+        logo_url = request.POST.get('logo_url', '')
+        cuisine_type = request.POST.get('cuisine_type', '')
+        description = request.POST.get('description', '')
+        opening_time = request.POST.get('opening_time', '09:00')
+        closing_time = request.POST.get('closing_time', '21:00')
+        
+        # Validate passwords match
+        if password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'users/business_registration.html')
+        
+        # Check if user already exists
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'An account with this email already exists.')
+            return render(request, 'users/business_registration.html')
+        
+        try:
+            # Create user
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1,
+                role='owner',
+                first_name=full_name.split()[0] if full_name else '',
+                last_name=' '.join(full_name.split()[1:]) if len(full_name.split()) > 1 else ''
+            )
+            
+            # Create restaurant
+            if restaurant_name:
+                Restaurant.objects.create(
+                    name=restaurant_name,
+                    description=description,
+                    owner=user,
+                    location=address or location
+                )
+            
+            messages.success(request, 'Business registration successful! Please log in.')
+            return redirect('users:login')
+            
+        except Exception as e:
+            messages.error(request, f'Registration failed: {str(e)}')
+    
+    return render(request, 'users/business_registration.html')

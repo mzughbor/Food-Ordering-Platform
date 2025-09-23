@@ -17,15 +17,21 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
+from django.conf import settings
+from django.conf.urls.static import static
 
-def redirect_to_login(request):
-    return redirect('users:login')
+def redirect_to_home(request):
+    return redirect('users:home')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("", redirect_to_login, name="home"),
+    path("", redirect_to_home, name="home"),
     path("users/", include("users.urls", namespace="users")),
     path("meals/", include("meals.urls", namespace="meals")),
     path("orders/", include("orders.urls", namespace="orders")),
     path("restaurants/", include("restaurants.urls", namespace="restaurants")),
 ]
+
+# Serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

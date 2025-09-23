@@ -1,57 +1,318 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Food Ordering Platform{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <meta name="description" content="Food Ordering Platform - Order delicious meals from top restaurants">
+    <title>{% block title %}FoodOrdering - {% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/favicon.png' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light-green sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'users:login' %}">Food Ordering Platform</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'users:home' %}">
+                <span class="fw-bold text-dark fs-3">FoodOrdering</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" href="{% url 'users:home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" href="{% url 'meals:meal_list' %}">Meals</a>
+                    </li>
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <span class="navbar-text me-3">Welcome, {{ user.username }} ({{ user.get_role_display }})</span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:profile' %}">Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:logout' %}">Logout</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:login' %}">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:register' %}">Register</a>
-                        </li>
+                        {% if user.role == 'admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium" href="{% url 'restaurants:dashboard' %}">Restaurants</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium" href="{% url 'orders:delivery_dashboard' %}">Orders</a>
+                            </li>
+                        {% elif user.role == 'owner' %}
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium" href="{% url 'restaurants:restaurant_dashboard' %}">Dashboard</a>
+                            </li>
+                        {% elif user.role == 'delivery' %}
+                            <li class="nav-item">
+                                <a class="nav-link fw-medium" href="{% url 'orders:delivery_dashboard' %}">Orders</a>
+                            </li>
+                        {% endif %}
                     {% endif %}
                 </ul>
+                
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link text-dark me-3" id="darkModeToggle" title="Toggle Dark Mode">
+                        <ion-icon name="moon-outline" style="font-size: 24px;" id="darkModeIcon"></ion-icon>
+                    </button>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'users:profile' %}" class="text-dark me-3">
+                            <ion-icon name="person-outline" style="font-size: 24px;"></ion-icon>
+                        </a>
+                        {% if user.role == 'customer' %}
+                        <a href="{% url 'orders:cart' %}" class="text-dark d-flex align-items-center position-relative" id="cartLink">
+                            <ion-icon name="cart-outline" style="font-size: 24px;" class="me-1"></ion-icon>
+                            <span id="cartCount">Cart (0)</span>
+                        </a>
+                        {% endif %}
+                        <div class="dropdown ms-3">
+                            <button class="btn btn-link text-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <ion-icon name="menu-outline" style="font-size: 24px;"></ion-icon>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'users:profile' %}">
+                                    <ion-icon name="person-outline" class="me-2"></ion-icon>Profile
+                                </a></li>
+                                {% if user.role == 'admin' %}
+                                <li><a class="dropdown-item" href="{% url 'users:admin_dashboard' %}">
+                                    <ion-icon name="settings-outline" class="me-2"></ion-icon>Admin Dashboard
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'users:simple_admin_dashboard' %}">
+                                    <ion-icon name="grid-outline" class="me-2"></ion-icon>Simple Admin
+                                </a></li>
+                                {% elif user.role == 'owner' %}
+                                <li><a class="dropdown-item" href="{% url 'restaurants:restaurant_dashboard' %}">
+                                    <ion-icon name="restaurant-outline" class="me-2"></ion-icon>Restaurant Dashboard
+                                </a></li>
+                                {% elif user.role == 'delivery' %}
+                                <li><a class="dropdown-item" href="{% url 'orders:delivery_dashboard' %}">
+                                    <ion-icon name="car-outline" class="me-2"></ion-icon>Delivery Dashboard
+                                </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'users:logout' %}">
+                                    <ion-icon name="log-out-outline" class="me-2"></ion-icon>Logout
+                                </a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'users:login' %}" class="text-dark me-3">
+                            <ion-icon name="person-outline" style="font-size: 24px;"></ion-icon>
+                        </a>
+                        <a href="{% url 'users:login' %}" class="btn btn-success">Start Now</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        {% if messages %}
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
-        {% endif %}
+        </div>
+    {% endif %}
 
-        {% block content %}
-        {% endblock %}
+    <!-- Main Content -->
+    {% block content %}
+    {% endblock %}
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="fw-bold fs-4">FoodOrdering</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="me-3">VISA</span>
+                        <span>Mastercard</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex flex-wrap justify-content-md-end">
+                        <a href="#" class="text-light text-decoration-none me-3 mb-2">Corporate</a>
+                        <a href="#" class="text-light text-decoration-none me-3 mb-2">Careers</a>
+                        <a href="#" class="text-light text-decoration-none me-3 mb-2">Terms and Conditions</a>
+                        <a href="#" class="text-light text-decoration-none me-3 mb-2">FAQ</a>
+                        <a href="#" class="text-light text-decoration-none me-3 mb-2">Privacy Policy</a>
+                        <a href="#" class="text-light text-decoration-none me-3 mb-2">Contact Us</a>
+                        <a href="#" class="text-light text-decoration-none mb-2">Sitemap</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Add to Cart Popup -->
+    <div class="add-to-cart-popup position-fixed" id="addToCartPopup" style="display: none; z-index: 9999;">
+        <div class="popup-content bg-white rounded-3 shadow-lg p-3">
+            <div class="popup-arrow-up"></div>
+            <h6 class="fw-bold text-dark mb-2">Item Added To Cart</h6>
+            <p class="mb-1 text-muted small" id="popupItemName">Product Title</p>
+            <p class="mb-3 text-muted small" id="popupItemDetails">Qty: 1 | $5.00</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-primary btn-sm" onclick="window.location.href='{% url 'orders:cart' %}'">View Cart</button>
+                <button class="btn btn-primary btn-sm" onclick="window.location.href='{% url 'orders:checkout' %}'">Checkout</button>
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/script.js' %}"></script>
+    
+    <!-- Dark Mode and Cart Functionality -->
+    <script>
+        // Dark Mode Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const darkModeIcon = document.getElementById('darkModeIcon');
+            const htmlElement = document.documentElement;
+
+            // Check for saved theme preference or default to light mode
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            htmlElement.setAttribute('data-bs-theme', currentTheme);
+            updateDarkModeIcon(currentTheme);
+
+            // Add click event listener to toggle button
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('click', function () {
+                    const currentTheme = htmlElement.getAttribute('data-bs-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    
+                    // Update theme
+                    htmlElement.setAttribute('data-bs-theme', newTheme);
+                    
+                    // Save to localStorage
+                    localStorage.setItem('theme', newTheme);
+                    
+                    // Update icon
+                    updateDarkModeIcon(newTheme);
+                });
+            }
+
+            function updateDarkModeIcon(theme) {
+                if (darkModeIcon) {
+                    if (theme === 'dark') {
+                        darkModeIcon.setAttribute('name', 'sunny-outline');
+                    } else {
+                        darkModeIcon.setAttribute('name', 'moon-outline');
+                    }
+                }
+            }
+
+            // Update cart count
+            updateCartCount();
+        });
+
+        // Cart functionality
+        function updateCartCount() {
+            // This would typically fetch from the server
+            // For now, we'll use a simple counter
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                // You can implement AJAX to get real cart count
+                cartCount.textContent = 'Cart (0)';
+            }
+        }
+
+        function showAddToCartPopup(itemName, itemDetails) {
+            const popup = document.getElementById('addToCartPopup');
+            const popupItemName = document.getElementById('popupItemName');
+            const popupItemDetails = document.getElementById('popupItemDetails');
+            
+            if (popup && popupItemName && popupItemDetails) {
+                popupItemName.textContent = itemName;
+                popupItemDetails.textContent = itemDetails;
+                popup.style.display = 'block';
+                
+                // Position popup near cart icon
+                const cartLink = document.getElementById('cartLink');
+                if (cartLink) {
+                    const rect = cartLink.getBoundingClientRect();
+                    popup.style.top = (rect.top - 100) + 'px';
+                    popup.style.left = (rect.left + rect.width / 2 - 150) + 'px';
+                }
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    popup.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+
+    <!-- Popup Styles -->
+    <style>
+        .add-to-cart-popup {
+            animation: slideInUp 0.3s ease-out;
+            z-index: 9999;
+        }
+
+        .popup-content {
+            position: relative;
+            min-width: 250px;
+            max-width: 300px;
+        }
+
+        .popup-arrow-up {
+            position: absolute;
+            bottom: 100%;
+            right: 20px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid white;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </body>
 </html>

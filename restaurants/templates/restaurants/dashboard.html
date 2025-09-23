@@ -1,36 +1,263 @@
 {% extends 'users/base.html' %}
+{% load static %}
 
-{% block title %}Restaurant Dashboard - Food Ordering Platform{% endblock %}
+{% block title %}Restaurant Dashboard - FoodOrdering{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2>Restaurant Dashboard</h2>
-        <p>Welcome, {{ user.username }}! Manage your restaurants here.</p>
+<!-- Hero Section -->
+<section class="bg-light-green py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold text-dark mb-3">
+                    {% if user.role == 'admin' %}
+                        Admin - Restaurant Management
+                    {% else %}
+                        Restaurant Dashboard
+                    {% endif %}
+                </h1>
+                <p class="lead text-muted mb-4">
+                    {% if user.role == 'admin' %}
+                        Welcome back, {{ user.username }}! Manage all restaurants and monitor the platform.
+                    {% else %}
+                        Welcome back, {{ user.username }}! Manage your restaurants and track your business performance.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                    <ion-icon name="restaurant-outline" size="large" class="text-white"></ion-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <ion-icon name="restaurant-outline" size="large" class="text-white"></ion-icon>
+                        </div>
+                        <h3 class="fw-bold text-dark">{{ restaurants.count }}</h3>
+                        <p class="text-muted mb-0">Restaurants</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <ion-icon name="fast-food-outline" size="large" class="text-white"></ion-icon>
+                        </div>
+                        <h3 class="fw-bold text-dark">
+                            {% for restaurant in restaurants %}
+                                {{ restaurant.meals.count|add:0 }}
+                            {% empty %}
+                                0
+                            {% endfor %}
+                        </h3>
+                        <p class="text-muted mb-0">Total Meals</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <ion-icon name="receipt-outline" size="large" class="text-white"></ion-icon>
+                        </div>
+                        <h3 class="fw-bold text-dark">0</h3>
+                        <p class="text-muted mb-0">Orders Today</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="bg-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <ion-icon name="cash-outline" size="large" class="text-white"></ion-icon>
+                        </div>
+                        <h3 class="fw-bold text-dark">$0</h3>
+                        <p class="text-muted mb-0">Revenue Today</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         
+        <!-- Restaurants Section -->
         {% if restaurants %}
             <div class="row">
+            <div class="col-12">
+                <h2 class="fw-bold text-dark mb-4">
+                    {% if user.role == 'admin' %}
+                        All Restaurants
+                    {% else %}
+                        Your Restaurants
+                    {% endif %}
+                </h2>
+            </div>
+            </div>
+            
+            <div class="row g-4">
                 {% for restaurant in restaurants %}
-                    <div class="col-md-6 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ restaurant.name }}</h5>
-                                <p class="card-text">{{ restaurant.description|truncatewords:20 }}</p>
-                                <p class="card-text">
-                                    <small class="text-muted">{{ restaurant.location }}</small>
-                                </p>
-                                <a href="#" class="btn btn-primary">Manage Restaurant</a>
+                    <div class="col-lg-6">
+                        <div class="card h-100 border-0 shadow-sm restaurant-card">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title fw-bold text-dark mb-0">{{ restaurant.name }}</h5>
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                                
+                                <p class="card-text text-muted mb-3">{{ restaurant.description|truncatewords:25 }}</p>
+                                
+                                <div class="row g-3 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <ion-icon name="location-outline" class="text-muted me-2"></ion-icon>
+                                            <small class="text-muted">{{ restaurant.location|default:"No location set" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <ion-icon name="fast-food-outline" class="text-muted me-2"></ion-icon>
+                                            <small class="text-muted">{{ restaurant.meals.count }} meals</small>
+                                        </div>
+                                    </div>
+                                    {% if user.role == 'admin' %}
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center">
+                                            <ion-icon name="person-outline" class="text-muted me-2"></ion-icon>
+                                            <small class="text-muted">Owner: {{ restaurant.owner.username }}</small>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm">
+                                        <ion-icon name="eye-outline" class="me-1"></ion-icon>
+                                        View Details
+                                    </button>
+                                    <button class="btn btn-success btn-sm">
+                                        <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                        Add Meal
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm">
+                                        <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                        Settings
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="alert alert-info">
-                <h4>No restaurants found</h4>
-                <p>You don't have any restaurants yet. Contact an administrator to add restaurants to your account.</p>
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="text-center py-5">
+                        <div class="bg-light-green rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 120px; height: 120px;">
+                            <ion-icon name="restaurant-outline" size="large" class="text-success"></ion-icon>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-3">No restaurants found</h3>
+                        <p class="text-muted mb-4">You don't have any restaurants yet. Contact an administrator to add restaurants to your account or start your restaurant business with us.</p>
+                        <div class="d-flex gap-3 justify-content-center">
+                            <a href="{% url 'users:profile' %}" class="btn btn-success">
+                                <ion-icon name="arrow-back-outline" class="me-2"></ion-icon>
+                                Back to Profile
+                            </a>
+                            <button class="btn btn-outline-success">
+                                <ion-icon name="add-outline" class="me-2"></ion-icon>
+                                Request Restaurant
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         {% endif %}
     </div>
-</div>
+</section>
+
+<!-- Quick Actions Section -->
+{% if restaurants %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="fw-bold text-dark mb-4">Quick Actions</h2>
+                <p class="text-muted mb-4">Manage your restaurant business efficiently</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body">
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <ion-icon name="add-outline" size="large" class="text-white"></ion-icon>
+                        </div>
+                        <h6 class="fw-bold">Add New Meal</h6>
+                        <p class="text-muted small">Add delicious meals to your menu</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body">
+                        <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <ion-icon name="receipt-outline" size="large" class="text-white"></ion-icon>
+                        </div>
+                        <h6 class="fw-bold">View Orders</h6>
+                        <p class="text-muted small">Check incoming orders</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body">
+                        <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <ion-icon name="analytics-outline" size="large" class="text-white"></ion-icon>
+                        </div>
+                        <h6 class="fw-bold">Analytics</h6>
+                        <p class="text-muted small">View business insights</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center h-100">
+                    <div class="card-body">
+                        <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <ion-icon name="settings-outline" size="large" class="text-white"></ion-icon>
+                        </div>
+                        <h6 class="fw-bold">Settings</h6>
+                        <p class="text-muted small">Manage restaurant settings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<style>
+.restaurant-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.restaurant-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+}
+</style>
 {% endblock %}

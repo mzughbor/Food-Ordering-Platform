@@ -1,0 +1,475 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - FoodOrdering{% endblock %}
+
+{% block content %}
+<!-- Admin Dashboard -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 admin-sidebar p-0">
+            <div class="p-3">
+                <h5 class="text-dark fw-bold mb-4">
+                    <ion-icon name="settings-outline" class="me-2"></ion-icon>
+                    Admin Panel
+                </h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link active text-dark fw-medium" href="#dashboard">
+                        <ion-icon name="grid-outline" class="me-2"></ion-icon>
+                        Dashboard
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="#users">
+                        <ion-icon name="people-outline" class="me-2"></ion-icon>
+                        User Management
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="{% url 'restaurants:dashboard' %}">
+                        <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                        Restaurants
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="{% url 'orders:delivery_dashboard' %}">
+                        <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                        Orders
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="#settings">
+                        <ion-icon name="cog-outline" class="me-2"></ion-icon>
+                        Settings
+                    </a>
+                    <a class="nav-link text-dark fw-medium" href="{% url 'users:home' %}">
+                        <ion-icon name="arrow-back-outline" class="me-2"></ion-icon>
+                        Back to Site
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 admin-content">
+            <!-- Admin Header -->
+            <div class="admin-header">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h2 class="text-dark fw-bold mb-0">Admin Dashboard</h2>
+                            <p class="text-muted mb-0">Manage your food ordering platform</p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted me-3">Welcome, {{ user.username }}</span>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <ion-icon name="person-circle-outline" class="me-1"></ion-icon>
+                                        {{ user.username }}
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
+                                        <li><a class="dropdown-item" href="#settings">Settings</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="container-fluid py-4">
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon bg-primary me-3">
+                                    <ion-icon name="people"></ion-icon>
+                                </div>
+                                <div>
+                                    <h3 class="fw-bold text-dark mb-0">{{ total_users }}</h3>
+                                    <p class="text-muted mb-0">Total Users</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon bg-success me-3">
+                                    <ion-icon name="restaurant"></ion-icon>
+                                </div>
+                                <div>
+                                    <h3 class="fw-bold text-dark mb-0">{{ total_restaurants }}</h3>
+                                    <p class="text-muted mb-0">Restaurants</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon bg-warning me-3">
+                                    <ion-icon name="receipt"></ion-icon>
+                                </div>
+                                <div>
+                                    <h3 class="fw-bold text-dark mb-0">{{ total_orders }}</h3>
+                                    <p class="text-muted mb-0">Total Orders</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="stats-card">
+                            <div class="d-flex align-items-center">
+                                <div class="stats-icon bg-info me-3">
+                                    <ion-icon name="cash"></ion-icon>
+                                </div>
+                                <div>
+                                    <h3 class="fw-bold text-dark mb-0">${{ total_revenue }}</h3>
+                                    <p class="text-muted mb-0">Revenue</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management Section -->
+                <div class="settings-section">
+                    <h4>Admin view of all users</h4>
+                    
+                    <!-- Filters -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <select class="form-select filter-dropdown">
+                                <option selected>Category</option>
+                                <option value="customer">Customer</option>
+                                <option value="owner">Restaurant Owner</option>
+                                <option value="delivery">Delivery Person</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select filter-dropdown">
+                                <option selected>City</option>
+                                <option value="alexandria">Alexandria</option>
+                                <option value="cairo">Cairo</option>
+                                <option value="giza">Giza</option>
+                                <option value="sharm">Sharm El Sheikh</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search users...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <ion-icon name="search"></ion-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="user-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                {{ user.username|first|upper }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">{{ user.username }}</h6>
+                                                <small class="text-muted">{{ user.get_full_name|default:"No name" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'owner' %}warning{% elif user.role == 'delivery' %}info{% else %}success{% endif %}">
+                                            {{ user.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                            {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                            <ion-icon name="create-outline"></ion-icon>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <ion-icon name="trash-outline"></ion-icon>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Platform Settings Section -->
+                <div class="settings-section">
+                    <h4>Platform - Settings</h4>
+                    <h6 class="text-muted mb-3">Platform Information</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="siteName" placeholder="Site Name" value="FoodOrdering">
+                                <label for="siteName">Site Name</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="siteLogo" placeholder="Site logo file path" value="/img/logo.png">
+                                <label for="siteLogo">Site logo file path</label>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm mt-2">
+                                <ion-icon name="folder-outline" class="me-1"></ion-icon>
+                                Browse...
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-floating">
+                            <textarea class="form-control" id="siteDescription" style="height: 100px" placeholder="About / Description">FoodOrdering is a comprehensive food delivery platform that connects customers with local restaurants, providing a seamless ordering experience with real-time tracking and multiple payment options.</textarea>
+                            <label for="siteDescription">About / Description</label>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="contactEmail" placeholder="Contact Email" value="admin@foodordering.com">
+                                <label for="contactEmail">Contact Email</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" id="supportPhone" placeholder="Support Phone Number" value="+1 (555) 123-4567">
+                                <label for="supportPhone">Support Phone Number</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button class="btn btn-save">
+                            <ion-icon name="save-outline" class="me-1"></ion-icon>
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Dashboard Styles -->
+<style>
+    .admin-sidebar {
+        min-height: 100vh;
+        background: var(--bg-light);
+        border-right: 1px solid var(--border-color);
+    }
+    
+    .admin-content {
+        min-height: 100vh;
+        background: var(--bg-white);
+    }
+    
+    .admin-header {
+        background: var(--bg-white);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 0;
+    }
+    
+    .stats-card {
+        background: var(--bg-white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    
+    .user-table {
+        background: var(--bg-white);
+        border-radius: var(--border-radius-md);
+        overflow: hidden;
+    }
+    
+    .user-table th {
+        background: var(--bg-light);
+        border-bottom: 2px solid var(--border-color);
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .user-table td {
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-inactive {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .settings-section {
+        background: var(--bg-white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .settings-section h4 {
+        color: var(--text-dark);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-green);
+    }
+    
+    .form-floating > label {
+        color: var(--text-muted);
+    }
+    
+    .btn-save {
+        background: var(--primary-green);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: var(--border-radius-md);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+        background: var(--secondary-green);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .filter-dropdown {
+        background: var(--bg-white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-sm);
+        padding: 0.5rem 1rem;
+        color: var(--text-dark);
+    }
+    
+    .filter-dropdown:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 0.2rem rgba(148, 216, 45, 0.25);
+    }
+</style>
+
+<!-- Admin Dashboard JS -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🎛️ Admin Dashboard loaded');
+        
+        // User table row selection
+        const tableRows = document.querySelectorAll('.user-table tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('click', function() {
+                // Remove active class from all rows
+                tableRows.forEach(r => r.classList.remove('table-active'));
+                // Add active class to clicked row
+                this.classList.add('table-active');
+            });
+        });
+        
+        // Save button functionality
+        const saveButtons = document.querySelectorAll('.btn-save');
+        saveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const section = this.closest('.settings-section');
+                const sectionName = section.querySelector('h4').textContent;
+                
+                // Show success message
+                showNotification(`${sectionName} saved successfully!`, 'success');
+                
+                // Add loading state
+                this.innerHTML = '<ion-icon name="hourglass-outline" class="me-1"></ion-icon>Saving...';
+                this.disabled = true;
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    this.innerHTML = '<ion-icon name="save-outline" class="me-1"></ion-icon>Save';
+                    this.disabled = false;
+                }, 2000);
+            });
+        });
+        
+        // Filter functionality
+        const filterDropdowns = document.querySelectorAll('.filter-dropdown');
+        filterDropdowns.forEach(dropdown => {
+            dropdown.addEventListener('change', function() {
+                console.log('Filter changed:', this.value);
+                // Implement filtering logic here
+            });
+        });
+    });
+    
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+</script>
+{% endblock %}
