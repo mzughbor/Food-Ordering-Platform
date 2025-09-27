@@ -35,9 +35,18 @@ def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Registration successful! Please log in.')
-            return redirect('login')
+            user = form.save()
+            # Automatically log in the user after successful registration
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=password)
+            if user:
+                login(request, user)
+                messages.success(request, 'Registration successful! You are now logged in.')
+                return redirect('users:home')
+            else:
+                messages.success(request, 'Registration successful! Please log in.')
+                return redirect('users:login')
     else:
         form = CustomUserCreationForm()
     return render(request, 'users/register.html', {'form': form})
@@ -81,9 +90,18 @@ def login_view(request):
             # Registration form
             form = CustomUserCreationForm(request.POST)
             if form.is_valid():
-                form.save()
-                messages.success(request, 'Registration successful! Please log in.')
-                return redirect('users:login')
+                user = form.save()
+                # Automatically log in the user after successful registration
+                username = form.cleaned_data.get('username')
+                password = form.cleaned_data.get('password1')
+                user = authenticate(username=username, password=password)
+                if user:
+                    login(request, user)
+                    messages.success(request, 'Registration successful! You are now logged in.')
+                    return redirect('users:home')
+                else:
+                    messages.success(request, 'Registration successful! Please log in.')
+                    return redirect('users:login')
             else:
                 messages.error(request, 'Registration failed. Please check your information.')
 
@@ -215,8 +233,15 @@ def business_registration_view(request):
                     restaurant.logo = request.FILES['logo']
                     restaurant.save()
             
-            messages.success(request, 'Business registration successful! Please log in.')
-            return redirect('users:login')
+            # Automatically log in the user after successful registration
+            user = authenticate(username=username, password=password1)
+            if user:
+                login(request, user)
+                messages.success(request, 'Business registration successful! You are now logged in.')
+                return redirect('users:home')
+            else:
+                messages.success(request, 'Business registration successful! Please log in.')
+                return redirect('users:login')
             
         except Exception as e:
             messages.error(request, f'Registration failed: {str(e)}')
