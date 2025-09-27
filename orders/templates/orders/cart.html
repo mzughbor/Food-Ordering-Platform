@@ -166,68 +166,7 @@
     </div>
 </div>
 
-<!-- Cart Specific JS -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Quantity controls
-        const quantityButtons = document.querySelectorAll('.quantity-btn');
-        const quantityInputs = document.querySelectorAll('.quantity-input');
-        
-        quantityButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const action = this.getAttribute('data-action');
-                const itemId = this.getAttribute('data-item-id');
-                const input = this.closest('.quantity-controls').querySelector('.quantity-input');
-                const currentValue = parseInt(input.value);
-                
-                if (action === 'increase' && currentValue < 10) {
-                    input.value = currentValue + 1;
-                    updateCartItem(itemId, input.value);
-                } else if (action === 'decrease' && currentValue > 1) {
-                    input.value = currentValue - 1;
-                    updateCartItem(itemId, input.value);
-                }
-            });
-        });
-        
-        quantityInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                const itemId = this.getAttribute('data-item-id');
-                if (this.value < 1) this.value = 1;
-                if (this.value > 10) this.value = 10;
-                updateCartItem(itemId, this.value);
-            });
-        });
-        
-        function updateCartItem(itemId, quantity) {
-            // Send AJAX request to update cart item
-            fetch(`/orders/update-cart-item/${itemId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({
-                    quantity: parseInt(quantity)
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateCartTotals();
-                }
-            })
-            .catch(error => {
-                console.error('Error updating cart:', error);
-            });
-        }
-        
-        function updateCartTotals() {
-            // Reload the page to get updated totals
-            window.location.reload();
-        }
-    });
-</script>
+<!-- Cart functionality is handled by cart.js -->
 
 <!-- Add to Cart Popup Styles -->
 <style>

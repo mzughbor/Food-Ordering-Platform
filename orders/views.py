@@ -128,10 +128,13 @@ def update_cart_item(request, item_id):
             item.quantity = quantity
             item.save()
             
+            # Calculate subtotal manually since total_price is a property
+            subtotal = sum(float(order_item.price * order_item.quantity) for order_item in OrderItem.objects.filter(order=item.order))
+            
             return JsonResponse({
                 'success': True,
                 'total_price': float(item.total_price),
-                'subtotal': float(sum(OrderItem.objects.filter(order=item.order).values_list('total_price', flat=True)))
+                'subtotal': subtotal
             })
         else:
             return JsonResponse({'success': False, 'error': 'Invalid quantity'})
