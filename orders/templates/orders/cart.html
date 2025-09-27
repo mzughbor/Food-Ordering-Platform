@@ -199,6 +199,18 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .quantity-controls .btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .remove-item-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .quantity-input {
@@ -209,8 +221,30 @@
         border-color: var(--primary-green);
         box-shadow: 0 0 0 0.2rem rgba(148, 216, 45, 0.25);
     }
+
+    /* Debug styling for buttons */
+    .update-quantity-btn, .remove-item-btn {
+        position: relative;
+        z-index: 10;
+    }
 </style>
 
 <!-- Include Cart JavaScript -->
 <script src="{% static 'js/cart.js' %}"></script>
+<script>
+    // Debug: Check if cart.js loaded
+    console.log('Cart page loaded, checking for buttons...');
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, checking buttons...');
+        const updateBtns = document.querySelectorAll('.update-quantity-btn');
+        const removeBtns = document.querySelectorAll('.remove-item-btn');
+        console.log('Update buttons found:', updateBtns.length);
+        console.log('Remove buttons found:', removeBtns.length);
+        
+        // Test button click
+        updateBtns.forEach((btn, index) => {
+            console.log(`Button ${index}:`, btn, 'data-item-id:', btn.dataset.itemId, 'data-action:', btn.dataset.action);
+        });
+    });
+</script>
 {% endblock %}
