@@ -27,11 +27,15 @@ def cart_view(request):
     """Display shopping cart"""
     # Get cart items for the current user
     cart_items = OrderItem.objects.filter(order__user=request.user, order__status='pending')
-    cart_total = sum(item.total_price for item in cart_items)
+    
+    # Calculate cart total properly
+    cart_total = 0
+    for item in cart_items:
+        cart_total += float(item.total_price)
     
     context = {
         'cart_items': cart_items,
-        'cart_total': cart_total,
+        'cart_total': f"{cart_total:.2f}",
     }
     return render(request, 'orders/cart.html', context)
 

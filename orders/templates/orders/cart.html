@@ -58,7 +58,7 @@
                                     </td>
                                     <td class="py-4 px-4 text-end">
                                         <div class="d-flex align-items-center justify-content-end gap-2">
-                                            <span class="fw-bold item-total">${{ item.total_price }}</span>
+                                            <span class="fw-bold item-total">${{ item.total_price|floatformat:2 }}</span>
                                             <button class="btn btn-outline-danger btn-sm remove-item-btn" data-item-id="{{ item.id }}" title="Remove item">
                                                 <ion-icon name="trash-outline"></ion-icon>
                                             </button>
@@ -84,7 +84,7 @@
                     <div class="border-top p-4">
                         <div class="d-flex justify-content-end">
                             <div class="text-end">
-                                <h6 class="fw-bold mb-0">Subtotal: <span id="subtotal">${{ cart_total }}</span></h6>
+                                <h6 class="fw-bold mb-0">Subtotal: <span id="subtotal" class="subtotal">${{ cart_total }}</span></h6>
                             </div>
                         </div>
                     </div>
@@ -110,7 +110,7 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Subtotal</span>
-                            <span class="fw-medium">${{ cart_total }}</span>
+                            <span class="fw-medium subtotal">${{ cart_total }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Shipping</span>
