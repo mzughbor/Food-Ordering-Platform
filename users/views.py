@@ -255,3 +255,32 @@ def validate_email(request):
         'message': 'Email is available',
         'status': 'success'
     })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def validate_restaurant_name(request):
+    """AJAX endpoint to validate restaurant name availability"""
+    restaurant_name = request.POST.get('restaurant_name', '').strip()
+    
+    if not restaurant_name:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Restaurant name is required',
+            'status': 'error'
+        })
+    
+    # Check if restaurant name already exists (case-insensitive)
+    if Restaurant.objects.filter(name__iexact=restaurant_name).exists():
+        return JsonResponse({
+            'valid': False,
+            'message': 'This restaurant name is already taken',
+            'status': 'error'
+        })
+    
+    # Restaurant name is available
+    return JsonResponse({
+        'valid': True,
+        'message': 'Restaurant name is available',
+        'status': 'success'
+    })
