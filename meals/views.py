@@ -11,6 +11,7 @@ def meal_list(request):
     return render(request, "meals/meal_list.html", {'meals': meals})
 
 
+@login_required
 def meal_detail(request, meal_id):
     """Display meal detail page"""
     meal = get_object_or_404(Meal, id=meal_id)
