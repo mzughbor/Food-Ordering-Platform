@@ -4,19 +4,7 @@
 {% block title %}{{ meal.name }} - FoodOrdering{% endblock %}
 
 {% block content %}
-<!-- Add to Cart Popup -->
-<div class="add-to-cart-popup position-fixed" id="addToCartPopup" style="display: none; z-index: 9999;">
-    <div class="popup-content bg-white rounded-3 shadow-lg p-3">
-        <div class="popup-arrow"></div>
-        <h6 class="fw-bold text-dark mb-2">Item Added To Cart</h6>
-        <p class="mb-1 text-muted small" id="popupItemName">{{ meal.name }}</p>
-        <p class="mb-3 text-muted small" id="popupItemDetails">Qty: 1 | ${{ meal.price }}</p>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary btn-sm" onclick="window.location.href='{% url 'orders:cart' %}'">View Cart</button>
-            <button class="btn btn-primary btn-sm" onclick="window.location.href='{% url 'orders:checkout' %}'">Checkout</button>
-        </div>
-    </div>
-</div>
+<!-- Add to Cart Popup is handled by cart.js -->
 
 <!-- Main Content -->
 <div class="container py-5">
