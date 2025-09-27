@@ -19,12 +19,13 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
+from .admin import admin_site
 
 def redirect_to_home(request):
     return redirect('users:home')
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin_site.urls),  # Use custom admin site
     path("", redirect_to_home, name="home"),
     path("users/", include("users.urls", namespace="users")),
     path("meals/", include("meals.urls", namespace="meals")),
