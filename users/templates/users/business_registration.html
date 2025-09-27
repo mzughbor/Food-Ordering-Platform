@@ -17,7 +17,7 @@
             <!-- Business Registration Form -->
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-5">
-                    <form class="business-registration-form" method="post" action="{% url 'users:business_registration' %}">
+                    <form class="business-registration-form" method="post" action="{% url 'users:business_registration' %}" enctype="multipart/form-data">
                         {% csrf_token %}
                         <!-- Row 1: Email and Full Name -->
                         <div class="row mb-3">
@@ -73,12 +73,19 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="restaurant-logo" class="form-label fw-medium">Logo / Image</label>
-                                <input type="text" class="form-control" id="restaurant-logo" name="logo_url" placeholder="Enter image URL">
+                                <input type="file" class="form-control" id="restaurant-logo" name="logo" accept="image/*" onchange="previewImage(this)">
+                                <div class="form-text">Upload a logo or image for your restaurant (JPG, PNG, GIF)</div>
                             </div>
-                            <div class="col-md-6 d-flex align-items-end">
-                                <button type="button" class="btn btn-outline-secondary">
-                                    Browse...
-                                </button>
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium">Preview</label>
+                                <div id="image-preview" class="image-preview-container" style="display: none;">
+                                    <img id="preview-img" src="" alt="Logo Preview" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeImage()">Remove</button>
+                                </div>
+                                <div id="no-image-placeholder" class="no-image-placeholder">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                    <p class="text-muted mt-2">No image selected</p>
+                                </div>
                             </div>
                         </div>
 
@@ -182,6 +189,51 @@
             }
         });
     });
+
+    // Image preview functionality
+    function previewImage(input) {
+        const file = input.files[0];
+        const previewContainer = document.getElementById('image-preview');
+        const previewImg = document.getElementById('preview-img');
+        const noImagePlaceholder = document.getElementById('no-image-placeholder');
+        
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file.');
+                input.value = '';
+                return;
+            }
+            
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image size should be less than 5MB.');
+                input.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'block';
+                noImagePlaceholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.style.display = 'none';
+            noImagePlaceholder.style.display = 'block';
+        }
+    }
+    
+    function removeImage() {
+        const input = document.getElementById('restaurant-logo');
+        const previewContainer = document.getElementById('image-preview');
+        const noImagePlaceholder = document.getElementById('no-image-placeholder');
+        
+        input.value = '';
+        previewContainer.style.display = 'none';
+        noImagePlaceholder.style.display = 'block';
+    }
 </script>
 
 <!-- Include Email Validation JavaScript -->

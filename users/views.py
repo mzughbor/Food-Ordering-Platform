@@ -203,12 +203,17 @@ def business_registration_view(request):
             
             # Create restaurant
             if restaurant_name:
-                Restaurant.objects.create(
+                restaurant = Restaurant.objects.create(
                     name=restaurant_name,
                     description=description,
                     owner=user,
                     location=address or location
                 )
+                
+                # Handle logo upload
+                if 'logo' in request.FILES:
+                    restaurant.logo = request.FILES['logo']
+                    restaurant.save()
             
             messages.success(request, 'Business registration successful! Please log in.')
             return redirect('users:login')
