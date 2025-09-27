@@ -76,7 +76,7 @@
                         {% if user.role == 'customer' %}
                         <a href="{% url 'orders:cart' %}" class="text-dark d-flex align-items-center position-relative" id="cartLink">
                             <ion-icon name="cart-outline" style="font-size: 24px;" class="me-1"></ion-icon>
-                            <span id="cartCount">Cart (0)</span>
+                            <span class="cart-counter" id="cartCount">Cart (0)</span>
                         </a>
                         {% endif %}
                         <div class="dropdown ms-3">
@@ -314,5 +314,10 @@
             }
         }
     </style>
+
+    <!-- Include Cart JavaScript for authenticated users -->
+    {% if user.is_authenticated and user.role == 'customer' %}
+    <script src="{% static 'js/cart.js' %}"></script>
+    {% endif %}
 </body>
 </html>

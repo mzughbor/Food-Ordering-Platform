@@ -70,7 +70,7 @@
                                 
                                 <div class="d-grid gap-2">
                                     {% if meal.is_available %}
-                                        <button class="btn btn-success w-100" onclick="addToCart({{ meal.id }}, '{{ meal.name }}', {{ meal.price }})">
+                                        <button class="btn btn-success w-100 add-to-cart-btn" data-meal-id="{{ meal.id }}">
                                             <ion-icon name="add-outline" class="me-2"></ion-icon>
                                             Add to Cart
                                         </button>
@@ -165,47 +165,6 @@
 }
 </style>
 
-<script>
-function addToCart(mealId, mealName, mealPrice) {
-    // Show loading state
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<ion-icon name="hourglass-outline" class="me-2"></ion-icon>Adding...';
-    button.disabled = true;
-    
-    // Create form data
-    const formData = new FormData();
-    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-    formData.append('quantity', '1');
-    
-    // Send AJAX request
-    fetch(`/meals/add-to-cart/${mealId}/`, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Show success popup
-            showAddToCartPopup(mealName, `Qty: 1 | $${mealPrice}`);
-            // Update cart count
-            updateCartCount();
-        } else {
-            alert('Error adding item to cart: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error adding item to cart. Please try again.');
-    })
-    .finally(() => {
-        // Reset button
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-</script>
+<!-- Include Cart JavaScript -->
+<script src="{% static 'js/cart.js' %}"></script>
 {% endblock %}

@@ -141,6 +141,35 @@ def update_cart_item(request, item_id):
 
 
 @login_required
+@require_http_methods(["POST"])
+def remove_cart_item(request, item_id):
+    """Remove item from cart via AJAX"""
+    try:
+        item = get_object_or_404(OrderItem, id=item_id, order__user=request.user, order__status='pending')
+        order = item.order
+        item.delete()
+        
+        # Update order total
+        order.total_amount = sum(item.total_price for item in order.items.all())
+        order.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Item removed from cart'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+def cart_count(request):
+    """Get cart item count for navigation"""
+    count = OrderItem.objects.filter(order__user=request.user, order__status='pending').count()
+    return JsonResponse({'count': count})
+
+
+@login_required
 def order_tracking(request, order_id):
     """Track order status"""
     order = get_object_or_404(Order, id=order_id, user=request.user)
