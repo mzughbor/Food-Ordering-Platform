@@ -24,6 +24,7 @@
                             <div class="col-md-6">
                                 <label for="business-email" class="form-label fw-medium">Email address *</label>
                                 <input type="email" class="form-control" id="business-email" name="email" placeholder="Enter your email" required>
+                                <div id="business-email-message" style="display: none;"></div>
                             </div>
                             <div class="col-md-6">
                                 <label for="business-fullname" class="form-label fw-medium">Full name</label>
@@ -181,4 +182,7 @@
         });
     });
 </script>
+
+<!-- Include Email Validation JavaScript -->
+<script src="{% static 'js/email-validation.js' %}"></script>
 {% endblock %}

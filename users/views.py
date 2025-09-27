@@ -6,6 +6,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.urls import reverse
 from django import forms
 from django.db.models import Count, Sum
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import re
 from .models import User
 from restaurants.models import Restaurant
 from orders.models import Order
@@ -213,3 +217,41 @@ def business_registration_view(request):
             messages.error(request, f'Registration failed: {str(e)}')
     
     return render(request, 'users/business_registration.html')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def validate_email(request):
+    """AJAX endpoint to validate email format and availability"""
+    email = request.POST.get('email', '').strip()
+    
+    if not email:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Email is required',
+            'status': 'error'
+        })
+    
+    # Check email format
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_regex, email):
+        return JsonResponse({
+            'valid': False,
+            'message': 'Please enter a valid email address',
+            'status': 'error'
+        })
+    
+    # Check if email already exists
+    if User.objects.filter(email=email).exists():
+        return JsonResponse({
+            'valid': False,
+            'message': 'This email is already registered',
+            'status': 'error'
+        })
+    
+    # Email is valid and available
+    return JsonResponse({
+        'valid': True,
+        'message': 'Email is available',
+        'status': 'success'
+    })
