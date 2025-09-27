@@ -15,7 +15,7 @@
                 <p class="lead text-muted mb-4">
                     Order from your favorite restaurants and enjoy fresh, delicious meals delivered right to your doorstep. Fast, reliable, and always fresh.
                 </p>
-                <div class="d-flex gap-3">
+                <div class="d-flex flex-column flex-sm-row gap-3 mb-4 mb-lg-0">
                     <a href="{% url 'meals:meal_list' %}" class="btn btn-primary btn-lg px-4">
                         <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
                         Order Now
@@ -185,6 +185,34 @@
         </div>
     </div>
 </section>
+
+<!-- Mobile Hero Section Spacing -->
+<style>
+@media (max-width: 767.98px) {
+    .hero-section .d-flex {
+        margin-bottom: 2rem !important;
+    }
+    
+    .hero-section .btn {
+        width: 100%;
+        margin-bottom: 0.75rem;
+    }
+    
+    .hero-section .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .hero-section .hero-image {
+        margin-top: 2rem;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .hero-section .d-flex {
+        margin-bottom: 1.5rem;
+    }
+}
+</style>
 
 <!-- Restaurant Card Hover Effects -->
 <script>
