@@ -125,10 +125,14 @@ def update_cart_item(request, item_id):
     try:
         item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
         
-        data = json.loads(request.body)
-        quantity = int(data.get('quantity', 1))
+        # Handle both FormData and JSON data
+        if request.content_type == 'application/x-www-form-urlencoded' or 'multipart/form-data' in request.content_type:
+            quantity = int(request.POST.get('quantity', 1))
+        else:
+            data = json.loads(request.body)
+            quantity = int(data.get('quantity', 1))
         
-        if 1 <= quantity <= 10:
+        if 1 <= quantity <= 25:
             item.quantity = quantity
             item.save()
             
@@ -181,7 +185,11 @@ def order_tracking(request, order_id):
     """Track order status"""
     order = get_object_or_404(Order, id=order_id, user=request.user)
     
+    # Calculate order statistics
+    total_items = sum(item.quantity for item in order.items.all())
+    
     context = {
         'order': order,
+        'total_items': total_items,
     }
     return render(request, 'orders/order_tracking.html', context)

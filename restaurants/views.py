@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Avg
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from .models import Restaurant
@@ -39,19 +39,30 @@ def restaurant_dashboard(request):
         restaurants = Restaurant.objects.filter(owner=request.user)
         restaurant = restaurants.first() if restaurants.exists() else None
     
-    # Get meals for the restaurant
+    # Get meals for the restaurant with pagination
     meals = []
     recent_orders = []
+    meals_paginator = None
+    meals_page_obj = None
     
     if restaurant:
-        meals = Meal.objects.filter(restaurant=restaurant)[:10]
-        recent_orders = Order.objects.filter(restaurant=restaurant).select_related('user').order_by('-created_at')[:10]
+        # Get all meals for pagination
+        all_meals = Meal.objects.filter(restaurant=restaurant).order_by('-created_at')
+        meals_paginator = Paginator(all_meals, 5)
+        page_number = request.GET.get('meals_page', 1)
+        meals_page_obj = meals_paginator.get_page(page_number)
+        meals = meals_page_obj
+        
+        recent_orders = Order.objects.filter(restaurant=restaurant).select_related('user').order_by('-created_at')[:5]
     
     context = {
         'restaurant': restaurant,
         'restaurants': restaurants,
         'meals': meals,
         'recent_orders': recent_orders,
+        'meals_page_obj': meals_page_obj,
+        'meals_paginator': meals_paginator,
+        'is_meals_paginated': meals_page_obj.has_other_pages() if meals_page_obj else False,
     }
     return render(request, 'restaurants/restaurant_dashboard.html', context)
 
@@ -231,11 +242,17 @@ def restaurant_settings(request):
         return redirect('restaurants:restaurant_dashboard')
     
     if request.method == 'POST':
-        form = RestaurantForm(request.POST, instance=restaurant)
+        form = RestaurantForm(request.POST, request.FILES, instance=restaurant)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Restaurant settings updated successfully!')
+            # Check if hero image was uploaded
+            if 'hero_image' in request.FILES:
+                messages.success(request, 'Restaurant settings and hero image updated successfully!')
+            else:
+                messages.success(request, 'Restaurant settings updated successfully!')
             return redirect('restaurants:restaurant_settings')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = RestaurantForm(instance=restaurant)
     
@@ -288,3 +305,31 @@ def restaurant_orders(request):
         'orders': orders,
     }
     return render(request, 'restaurants/restaurant_orders.html', context)
+
+
+def restaurant_detail(request, restaurant_id):
+    """Public restaurant detail page for customers"""
+    restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+    
+    # Get available meals for this restaurant
+    meals = Meal.objects.filter(restaurant=restaurant, is_available=True).order_by('name')
+    
+    # Get restaurant statistics
+    total_meals = meals.count()
+    total_orders = Order.objects.filter(restaurant=restaurant).count()
+    
+    # Calculate average rating (mock data for now)
+    avg_rating = 4.5  # This would come from a review system
+    
+    # Get similar restaurants (exclude current one)
+    similar_restaurants = Restaurant.objects.exclude(id=restaurant_id)[:3]
+    
+    context = {
+        'restaurant': restaurant,
+        'meals': meals,
+        'total_meals': total_meals,
+        'total_orders': total_orders,
+        'avg_rating': avg_rating,
+        'similar_restaurants': similar_restaurants,
+    }
+    return render(request, 'restaurants/restaurant_detail.html', context)

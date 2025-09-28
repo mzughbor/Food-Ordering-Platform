@@ -61,6 +61,47 @@
                             {% endif %}
                         </div>
 
+                        <!-- Preparation Time Section -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="fw-bold text-dark mb-3">
+                                    <ion-icon name="time-outline" class="me-2"></ion-icon>
+                                    Preparation Time
+                                </h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.prep_time_min.id_for_label }}" class="form-label fw-bold">Minimum Time (min) *</label>
+                                    {{ form.prep_time_min }}
+                                    {% if form.prep_time_min.errors %}
+                                        <div class="text-danger small">{{ form.prep_time_min.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.prep_time_min.help_text }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.prep_time_max.id_for_label }}" class="form-label fw-bold">Maximum Time (min) *</label>
+                                    {{ form.prep_time_max }}
+                                    {% if form.prep_time_max.errors %}
+                                        <div class="text-danger small">{{ form.prep_time_max.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">{{ form.prep_time_max.help_text }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                    <strong>Preparation Time Rules:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Maximum range cannot exceed 15 minutes</li>
+                                        <li>When you enter a minimum time, maximum will auto-calculate</li>
+                                        <li>You can adjust the range but cannot exceed 15 minutes total</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -133,7 +174,7 @@
     </div>
 </div>
 
-<!-- Image Preview Script -->
+<!-- Image Preview and Preparation Time Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const imageInput = document.getElementById('{{ form.image.id_for_label }}');
@@ -153,6 +194,74 @@ document.addEventListener('DOMContentLoaded', function() {
             imagePreview.style.display = 'none';
         }
     });
+    
+    // Preparation time validation and auto-calculation
+    const prepTimeMin = document.getElementById('{{ form.prep_time_min.id_for_label }}');
+    const prepTimeMax = document.getElementById('{{ form.prep_time_max.id_for_label }}');
+    
+    if (prepTimeMin && prepTimeMax) {
+        prepTimeMin.addEventListener('input', function() {
+            const minValue = parseInt(this.value) || 0;
+            const maxValue = parseInt(prepTimeMax.value) || 0;
+            
+            if (minValue > 0) {
+                // Auto-calculate max when min changes
+                const suggestedMax = minValue + 15;
+                if (maxValue < minValue || maxValue > suggestedMax) {
+                    prepTimeMax.value = Math.min(suggestedMax, 60);
+                }
+            }
+            
+            validatePrepTime();
+        });
+        
+        prepTimeMax.addEventListener('input', function() {
+            validatePrepTime();
+        });
+        
+        function validatePrepTime() {
+            const minValue = parseInt(prepTimeMin.value) || 0;
+            const maxValue = parseInt(prepTimeMax.value) || 0;
+            
+            if (minValue > 0 && maxValue > 0) {
+                const range = maxValue - minValue;
+                
+                // Remove existing validation classes
+                prepTimeMin.classList.remove('is-invalid', 'is-valid');
+                prepTimeMax.classList.remove('is-invalid', 'is-valid');
+                
+                if (range > 15) {
+                    prepTimeMax.classList.add('is-invalid');
+                    showPrepTimeError('Preparation time range cannot exceed 15 minutes');
+                } else if (minValue >= maxValue) {
+                    prepTimeMax.classList.add('is-invalid');
+                    showPrepTimeError('Maximum time must be greater than minimum time');
+                } else {
+                    prepTimeMin.classList.add('is-valid');
+                    prepTimeMax.classList.add('is-valid');
+                    hidePrepTimeError();
+                }
+            }
+        }
+        
+        function showPrepTimeError(message) {
+            let errorDiv = document.getElementById('prepTimeError');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'prepTimeError';
+                errorDiv.className = 'alert alert-warning mt-2';
+                prepTimeMax.parentNode.appendChild(errorDiv);
+            }
+            errorDiv.innerHTML = `<ion-icon name="warning-outline" class="me-1"></ion-icon>${message}`;
+        }
+        
+        function hidePrepTimeError() {
+            const errorDiv = document.getElementById('prepTimeError');
+            if (errorDiv) {
+                errorDiv.remove();
+            }
+        }
+    }
 });
 </script>
 {% endblock %}

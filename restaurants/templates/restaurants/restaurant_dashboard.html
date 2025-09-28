@@ -8,39 +8,47 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 restaurant-sidebar p-0">
+        <div class="col-12 col-md-3 col-lg-2 restaurant-sidebar p-0">
             <div class="p-3">
-                <h5 class="text-dark fw-bold mb-4">
+                <h5 class="text-dark fw-bold mb-4 d-flex align-items-center">
                     <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
-                    Restaurant Panel
+                    <span class="d-none d-md-inline">Restaurant Panel</span>
+                    <span class="d-md-none">Panel</span>
                 </h5>
-                <nav class="nav flex-column">
-                    <a class="nav-link active text-dark fw-medium" href="{% url 'restaurants:restaurant_dashboard' %}">
+                <nav class="nav flex-column" aria-label="Restaurant dashboard navigation">
+                    <a class="nav-link active text-dark fw-medium d-flex align-items-center py-2" href="{% url 'restaurants:restaurant_dashboard' %}">
                         <ion-icon name="grid-outline" class="me-2"></ion-icon>
-                        Overview
+                        <span>Overview</span>
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="{% url 'restaurants:restaurant_orders' %}">
+                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% url 'restaurants:restaurant_orders' %}">
                         <ion-icon name="receipt-outline" class="me-2"></ion-icon>
-                        Orders
+                        <span>Orders</span>
+                        {% if recent_orders %}
+                            <span class="badge bg-primary ms-auto">{{ recent_orders|length }}</span>
+                        {% endif %}
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="{% url 'restaurants:manage_meals' %}">
+                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% url 'restaurants:manage_meals' %}">
                         <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
-                        Manage Meals
+                        <span>Manage Meals</span>
+                        {% if meals %}
+                            <span class="badge bg-success ms-auto">{{ meals|length }}</span>
+                        {% endif %}
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="{% url 'restaurants:restaurant_settings' %}">
+                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% url 'restaurants:restaurant_settings' %}">
                         <ion-icon name="settings-outline" class="me-2"></ion-icon>
-                        Settings
+                        <span>Settings</span>
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="{% url 'users:home' %}">
+                    <hr class="my-3">
+                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% url 'users:home' %}">
                         <ion-icon name="arrow-back-outline" class="me-2"></ion-icon>
-                        Back to Site
+                        <span>Back to Site</span>
                     </a>
                 </nav>
             </div>
         </div>
 
         <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 restaurant-content">
+        <div class="col-12 col-md-9 col-lg-10 restaurant-content">
             <!-- Restaurant Header -->
             <div class="restaurant-header">
                 <div class="container-fluid">
@@ -111,158 +119,241 @@
 
                 <!-- Orders Overview Section -->
                 <div class="orders-table mb-4">
-                    <div class="p-3 border-bottom">
-                        <h4 class="text-dark fw-bold mb-0">Recent Orders</h4>
+                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h4 class="text-dark fw-bold mb-0 d-flex align-items-center">
+                            <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                            Recent Orders
+                            {% if recent_orders %}
+                                <span class="badge bg-primary ms-2">{{ recent_orders|length }}</span>
+                            {% endif %}
+                        </h4>
+                        <a href="{% url 'restaurants:restaurant_orders' %}" class="btn btn-outline-primary btn-sm">
+                            <ion-icon name="eye-outline" class="me-1"></ion-icon>
+                            View All
+                        </a>
                     </div>
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>
-                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
-                                    Date
-                                </th>
-                                <th>
-                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
-                                    Order #
-                                </th>
-                                <th>
-                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
-                                    Customer
-                                </th>
-                                <th>
-                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
-                                    Status
-                                </th>
-                                <th>
-                                    <ion-icon name="diamond-outline" class="me-1"></ion-icon>
-                                    Amount
-                                </th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for order in recent_orders %}
-                            <tr>
-                                <td>{{ order.created_at|date:"Y-m-d" }}</td>
-                                <td>#{{ order.id }}</td>
-                                <td>{{ order.user.username }}</td>
-                                <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
-                                <td class="fw-bold text-{% if order.status == 'delivered' %}success{% elif order.status == 'confirmed' %}warning{% elif order.status == 'cancelled' %}danger{% else %}info{% endif %}">${{ order.total_amount }}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary me-1">
-                                        <ion-icon name="eye-outline"></ion-icon>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-success">
-                                        <ion-icon name="checkmark-outline"></ion-icon>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No orders yet</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="d-none d-md-table-cell">
+                                        <ion-icon name="calendar-outline" class="me-1"></ion-icon>
+                                        Date
+                                    </th>
+                                    <th>
+                                        <ion-icon name="hash-outline" class="me-1"></ion-icon>
+                                        Order #
+                                    </th>
+                                    <th class="d-none d-sm-table-cell">
+                                        <ion-icon name="person-outline" class="me-1"></ion-icon>
+                                        Customer
+                                    </th>
+                                    <th>
+                                        <ion-icon name="flag-outline" class="me-1"></ion-icon>
+                                        Status
+                                    </th>
+                                    <th>
+                                        <ion-icon name="cash-outline" class="me-1"></ion-icon>
+                                        Amount
+                                    </th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td class="d-none d-md-table-cell">{{ order.created_at|date:"M d, Y" }}</td>
+                                    <td><span class="fw-bold">#{{ order.id }}</span></td>
+                                    <td class="d-none d-sm-table-cell">{{ order.user.username|truncatechars:15 }}</td>
+                                    <td><span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+                                    <td class="fw-bold text-{% if order.status == 'delivered' %}success{% elif order.status == 'confirmed' %}warning{% elif order.status == 'cancelled' %}danger{% else %}info{% endif %}">${{ order.total_amount }}</td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <ion-icon name="eye-outline"></ion-icon>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" title="Update Status">
+                                                <ion-icon name="checkmark-outline"></ion-icon>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-5">
+                                        <ion-icon name="receipt-outline" style="font-size: 48px; color: #ccc;" class="mb-3 d-block"></ion-icon>
+                                        <p class="mb-0">No orders yet</p>
+                                        <small class="text-muted">Orders will appear here once customers start ordering</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Meals Management Section -->
                 <div class="meals-table mb-4">
                     <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-                        <h4 class="text-dark fw-bold mb-0">Meals</h4>
+                        <h4 class="text-dark fw-bold mb-0 d-flex align-items-center">
+                            <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                            Recent Meals
+                            {% if meals %}
+                                <span class="badge bg-success ms-2">{{ meals|length }}</span>
+                            {% endif %}
+                        </h4>
                         <div class="d-flex gap-2">
                             <a href="{% url 'restaurants:manage_meals' %}" class="btn btn-outline-primary btn-sm">
                                 <ion-icon name="create-outline" class="me-1"></ion-icon>
-                                Manage All
+                                <span class="d-none d-sm-inline">Manage All</span>
+                                <span class="d-sm-none">Manage</span>
                             </a>
-                            <a href="{% url 'restaurants:add_meal' %}" class="btn btn-create btn-sm">
+                            <a href="{% url 'restaurants:add_meal' %}" class="btn btn-success btn-sm">
                                 <ion-icon name="add-outline" class="me-1"></ion-icon>
-                                Add New
+                                <span class="d-none d-sm-inline">Add New</span>
+                                <span class="d-sm-none">Add</span>
                             </a>
                         </div>
                     </div>
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Name (ingredients)</th>
-                                <th>Price</th>
-                                <th>Available</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for meal in meals %}
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
-                                            {{ meal.name|first|upper }}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="d-none d-sm-table-cell">
+                                        <ion-icon name="restaurant-outline" class="me-1"></ion-icon>
+                                        Meal Details
+                                    </th>
+                                    <th class="d-sm-none">
+                                        <ion-icon name="restaurant-outline" class="me-1"></ion-icon>
+                                        Meals
+                                    </th>
+                                    <th>
+                                        <ion-icon name="cash-outline" class="me-1"></ion-icon>
+                                        Price
+                                    </th>
+                                    <th class="d-none d-md-table-cell">
+                                        <ion-icon name="time-outline" class="me-1"></ion-icon>
+                                        Prep Time
+                                    </th>
+                                    <th class="text-center">
+                                        <ion-icon name="checkmark-circle-outline" class="me-1"></ion-icon>
+                                        Available
+                                    </th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for meal in meals %}
+                                <tr data-meal-id="{{ meal.id }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                {{ meal.name|first|upper }}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-0 fw-bold">{{ meal.name|truncatechars:20 }}</h6>
+                                                <small class="text-muted d-none d-sm-block">{{ meal.description|truncatechars:30 }}</small>
+                                                <small class="text-muted d-sm-none">{{ meal.description|truncatechars:15 }}</small>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h6 class="mb-0 fw-bold">{{ meal.name }}</h6>
-                                            <small class="text-muted">{{ meal.description|truncatechars:30 }}</small>
+                                    </td>
+                                    <td class="fw-bold text-success">${{ meal.price }}</td>
+                                    <td class="d-none d-md-table-cell">
+                                        <span class="badge bg-info text-dark">{{ meal.prep_time_display }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input meal-availability-toggle" 
+                                                   type="checkbox" 
+                                                   id="available-{{ meal.id }}" 
+                                                   name="available-{{ meal.id }}" 
+                                                   data-meal-id="{{ meal.id }}"
+                                                   {% if meal.is_available %}checked{% endif %}>
                                         </div>
-                                    </div>
-                                </td>
-                                <td class="fw-bold">${{ meal.price }}</td>
-                                <td>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" {% if meal.is_available %}checked{% endif %}>
-                                    </div>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary me-1">
-                                        <ion-icon name="create-outline"></ion-icon>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <ion-icon name="trash-outline"></ion-icon>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">No meals yet</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group" aria-label="Meal actions">
+                                            <button class="btn btn-sm btn-outline-primary edit-meal-btn" 
+                                                    title="Edit Meal"
+                                                    data-meal-id="{{ meal.id }}"
+                                                    data-meal-name="{{ meal.name }}">
+                                                <ion-icon name="create-outline"></ion-icon>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger delete-meal-btn" 
+                                                    title="Delete Meal"
+                                                    data-meal-id="{{ meal.id }}"
+                                                    data-meal-name="{{ meal.name }}">
+                                                <ion-icon name="trash-outline"></ion-icon>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-5">
+                                        <ion-icon name="restaurant-outline" style="font-size: 48px; color: #ccc;" class="mb-3 d-block"></ion-icon>
+                                        <p class="mb-0">No meals yet</p>
+                                        <small class="text-muted">Add your first meal to get started</small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     
                     <!-- Pagination -->
+                    {% if is_meals_paginated %}
                     <div class="p-3 border-top">
-                        <nav aria-label="Meals pagination">
+                        <nav aria-label="Meals pagination" id="mealsPagination">
                             <ul class="pagination pagination-sm mb-0 justify-content-center">
-                                <li class="page-item">
-                                    <a class="page-link" href="#" aria-label="First">
-                                        <span aria-hidden="true">&laquo;&laquo;</span>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#" aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                                <li class="page-item active">
-                                    <a class="page-link" href="#">1</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">2</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">3</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#" aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#" aria-label="Last">
-                                        <span aria-hidden="true">&raquo;&raquo;</span>
-                                    </a>
-                                </li>
+                                {% if meals_page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?meals_page=1" aria-label="First">
+                                            <span aria-hidden="true">&laquo;&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?meals_page={{ meals_page_obj.previous_page_number }}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in meals_page_obj.paginator.page_range %}
+                                    {% if meals_page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > meals_page_obj.number|add:'-3' and num < meals_page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?meals_page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if meals_page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?meals_page={{ meals_page_obj.next_page_number }}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?meals_page={{ meals_page_obj.paginator.num_pages }}" aria-label="Last">
+                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
                             </ul>
                         </nav>
+                        
+                        <!-- Pagination Info -->
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                Showing {{ meals_page_obj.start_index }} to {{ meals_page_obj.end_index }} of {{ meals_page_obj.paginator.count }} meals
+                            </small>
+                        </div>
                     </div>
+                    {% endif %}
                 </div>
 
                 <!-- Create New Meal Form -->
@@ -293,6 +384,23 @@
                             </div>
                         </div>
                         
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control prep-time-input" id="mealPrepTimeMin" name="prep_time_min" placeholder="15" min="1" max="60" value="15" required>
+                                    <label for="mealPrepTimeMin">Min Prep Time (min)</label>
+                                </div>
+                                <small class="text-muted">Minimum preparation time in minutes</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control prep-time-input" id="mealPrepTimeMax" name="prep_time_max" placeholder="20" min="1" max="60" value="20" required>
+                                    <label for="mealPrepTimeMax">Max Prep Time (min)</label>
+                                </div>
+                                <small class="text-muted">Maximum preparation time in minutes</small>
+                            </div>
+                        </div>
+                        
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <div class="form-check form-switch">
@@ -315,18 +423,21 @@
 
                 <!-- Restaurant Profile Settings -->
                 <div class="settings-section">
-                    <h4>Restaurant Profile</h4>
+                    <h4 class="mb-4">
+                        <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                        Restaurant Profile
+                    </h4>
                     
                     <form method="post" action="{% url 'restaurants:restaurant_settings' %}">
                         {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-6 col-md-6 col-lg-6">
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="restaurantName" name="name" placeholder="Restaurant Name" value="{{ restaurant.name|default:'' }}" required>
                                     <label for="restaurantName">Restaurant Name</label>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-12 col-sm-6 col-md-6 col-lg-6">
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="restaurantLocation" name="location" placeholder="Location / Address" value="{{ restaurant.location|default:'' }}">
                                     <label for="restaurantLocation">Location / Address</label>
@@ -334,18 +445,28 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <div class="form-floating">
-                                <textarea class="form-control" id="restaurantDescription" name="description" style="height: 100px" placeholder="Description">{{ restaurant.description|default:'' }}</textarea>
-                                <label for="restaurantDescription">Description</label>
+                        <div class="row g-3 mt-2">
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="restaurantDescription" name="description" style="height: 100px; resize: vertical;" placeholder="Description">{{ restaurant.description|default:'' }}</textarea>
+                                    <label for="restaurantDescription">Description</label>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-save">
-                                <ion-icon name="save-outline" class="me-1"></ion-icon>
-                                Save
-                            </button>
+                        <div class="row g-3 mt-3">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                        <ion-icon name="refresh-outline" class="me-1"></ion-icon>
+                                        Reset
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <ion-icon name="save-outline" class="me-1"></ion-icon>
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -360,6 +481,48 @@
         min-height: 100vh;
         background: var(--bg-light);
         border-right: 1px solid var(--border-color);
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+        .restaurant-sidebar {
+            min-height: auto;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .restaurant-content {
+            padding-top: 1rem;
+        }
+        
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        
+        .btn-group .btn {
+            padding: 0.25rem 0.5rem;
+        }
+        
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            font-size: 0.75rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .d-flex.gap-2 {
+            flex-direction: column;
+            gap: 0.5rem !important;
+        }
+        
+        .d-flex.gap-2 .btn {
+            width: 100%;
+        }
+        
+        .settings-section .row.g-3 > div {
+            margin-bottom: 1rem;
+        }
     }
     
     .restaurant-content {
@@ -541,6 +704,97 @@
                 this.classList.add('table-active');
             });
         });
+        
+        // Meal availability toggle
+        const availabilityCheckboxes = document.querySelectorAll('input[name^="available-"]');
+        availabilityCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const mealId = this.name.replace('available-', '');
+                const isAvailable = this.checked;
+                
+                // Show loading state
+                this.disabled = true;
+                
+                // Here you would typically make an AJAX request to update the meal availability
+                // For now, we'll just show a visual feedback
+                setTimeout(() => {
+                    this.disabled = false;
+                    if (isAvailable) {
+                        showNotification('Meal marked as available', 'success');
+                    } else {
+                        showNotification('Meal marked as unavailable', 'warning');
+                    }
+                }, 500);
+            });
+        });
+        
+        // Preparation time validation and auto-calculation
+        const prepTimeInputs = document.querySelectorAll('.prep-time-input');
+        prepTimeInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                const minInput = document.getElementById('mealPrepTimeMin') || document.getElementById('prep_time_min');
+                const maxInput = document.getElementById('mealPrepTimeMax') || document.getElementById('prep_time_max');
+                
+                if (minInput && maxInput) {
+                    const minValue = parseInt(minInput.value) || 0;
+                    const maxValue = parseInt(maxInput.value) || 0;
+                    
+                    // Auto-calculate max when min changes
+                    if (this === minInput && minValue > 0) {
+                        const suggestedMax = minValue + 15;
+                        if (maxValue < minValue || maxValue > suggestedMax) {
+                            maxInput.value = Math.min(suggestedMax, 60);
+                        }
+                    }
+                    
+                    // Validate range
+                    if (minValue > 0 && maxValue > 0) {
+                        const range = maxValue - minValue;
+                        
+                        if (range > 15) {
+                            showNotification('Preparation time range cannot exceed 15 minutes', 'warning');
+                            maxInput.value = minValue + 15;
+                        }
+                        
+                        if (minValue >= maxValue) {
+                            showNotification('Minimum time must be less than maximum time', 'warning');
+                            maxInput.value = minValue + 1;
+                        }
+                    }
+                }
+            });
+        });
+    }
+    
+    // Reset form function
+    function resetForm() {
+        const form = document.querySelector('form[action*="restaurant_settings"]');
+        if (form) {
+            form.reset();
+            showNotification('Form reset to original values', 'info');
+        }
+    }
+    
+    // Show notification function
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 3000);
+    }
         
         // Save button functionality
         const saveButtons = document.querySelectorAll('.btn-save');

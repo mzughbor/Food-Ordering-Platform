@@ -81,7 +81,7 @@ def login_view(request):
                 elif user.role == 'owner':
                     return redirect('restaurants:restaurant_dashboard')
                 elif user.role == 'admin':
-                    return redirect('users:simple_admin_dashboard')
+                    return redirect('users:admin_dashboard')
                 elif user.role == 'delivery':
                     return redirect('orders:delivery_dashboard')
             else:
@@ -116,19 +116,57 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    return render(request, 'users/profile.html', {'user': request.user})
+    # Get user's orders ordered by most recent first
+    from orders.models import Order
+    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')[:10]  # Last 10 orders
+    
+    context = {
+        'user': request.user,
+        'user_orders': user_orders,
+    }
+    return render(request, 'users/profile.html', context)
 
 
 def home_view(request):
-    return render(request, 'users/home.html')
+    from restaurants.models import Restaurant
+    # Get 6 random featured restaurants for the home page
+    featured_restaurants = Restaurant.objects.order_by('?')[:6]
+    context = {
+        'featured_restaurants': featured_restaurants,
+    }
+    return render(request, 'users/home.html', context)
+
+
+def all_restaurants_view(request):
+    """Display all restaurants with pagination"""
+    from restaurants.models import Restaurant
+    from django.core.paginator import Paginator
+    
+    # Get all restaurants ordered by name
+    restaurants = Restaurant.objects.all().order_by('name')
+    
+    # Paginate with 6 restaurants per page
+    paginator = Paginator(restaurants, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'restaurants': page_obj,
+    }
+    return render(request, 'users/all_restaurants.html', context)
 
 
 @login_required
 def admin_dashboard_view(request):
-    """Full admin dashboard with detailed management"""
+    """Unified admin dashboard with simple and comprehensive views"""
     if request.user.role != 'admin':
         messages.error(request, 'Access denied. Admin privileges required.')
         return redirect('users:home')
+    
+    # Check if coming from simple admin dashboard
+    referrer = request.META.get('HTTP_REFERER', '')
+    is_simple_view = 'simple-admin-dashboard' in referrer or request.GET.get('view') == 'simple'
     
     # Get statistics
     total_users = User.objects.count()
@@ -147,36 +185,20 @@ def admin_dashboard_view(request):
         'total_revenue': total_revenue,
         'users': users,
         'recent_orders': recent_orders,
+        'is_simple_view': is_simple_view,
     }
     return render(request, 'users/admin_dashboard.html', context)
 
 
 @login_required
 def simple_admin_dashboard_view(request):
-    """Simple admin dashboard with basic overview"""
+    """Redirect to unified admin dashboard with simple view"""
     if request.user.role != 'admin':
         messages.error(request, 'Access denied. Admin privileges required.')
         return redirect('users:home')
     
-    # Get statistics
-    total_users = User.objects.count()
-    total_restaurants = Restaurant.objects.count()
-    total_orders = Order.objects.count()
-    total_revenue = Order.objects.aggregate(total=Sum('total_amount'))['total'] or 0
-    
-    # Get recent data
-    users = User.objects.all()[:10]
-    recent_orders = Order.objects.select_related('user', 'restaurant').order_by('-created_at')[:5]
-    
-    context = {
-        'total_users': total_users,
-        'total_restaurants': total_restaurants,
-        'total_orders': total_orders,
-        'total_revenue': total_revenue,
-        'users': users,
-        'recent_orders': recent_orders,
-    }
-    return render(request, 'users/simple_admin_dashboard.html', context)
+    # Redirect to unified dashboard with simple view parameter
+    return redirect('users:admin_dashboard?view=simple')
 
 
 def business_registration_view(request):

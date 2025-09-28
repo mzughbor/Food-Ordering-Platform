@@ -50,7 +50,7 @@
                                             <button class="btn btn-outline-secondary btn-sm update-quantity-btn" data-action="decrease" data-item-id="{{ item.id }}">
                                                 <ion-icon name="remove-outline"></ion-icon>
                                             </button>
-                                            <input type="number" class="form-control quantity-input text-center mx-2" value="{{ item.quantity }}" min="1" max="10" style="width: 60px;" data-item-id="{{ item.id }}">
+                                            <input type="number" class="form-control quantity-input text-center mx-2" id="quantity-{{ item.id }}" name="quantity-{{ item.id }}" value="{{ item.quantity }}" min="1" max="25" style="width: 60px;" data-item-id="{{ item.id }}">
                                             <button class="btn btn-outline-secondary btn-sm update-quantity-btn" data-action="increase" data-item-id="{{ item.id }}">
                                                 <ion-icon name="add-outline"></ion-icon>
                                             </button>

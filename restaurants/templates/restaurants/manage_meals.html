@@ -81,6 +81,7 @@
                                         <th>Name</th>
                                         <th>Description</th>
                                         <th>Price</th>
+                                        <th class="d-none d-md-table-cell">Prep Time</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -109,6 +110,9 @@
                                         </td>
                                         <td>
                                             <span class="fw-bold text-success">${{ meal.price }}</span>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">
+                                            <span class="badge bg-info text-dark">{{ meal.prep_time_display }}</span>
                                         </td>
                                         <td>
                                             <div class="form-check form-switch">
@@ -252,4 +256,45 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Custom Sidebar Styling -->
+<style>
+/* Override Bootstrap list-group colors with our green theme */
+.list-group-item-action {
+    color: #495057;
+    transition: all 0.3s ease;
+}
+
+.list-group-item-action:hover {
+    background-color: #e8f5e8;
+    color: #198754;
+    border-color: #198754;
+}
+
+.list-group-item-action:focus {
+    background-color: #e8f5e8;
+    color: #198754;
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+.list-group-item-action.active {
+    background-color: #198754;
+    border-color: #198754;
+    color: white;
+}
+
+.list-group-item-action.active:hover {
+    background-color: #157347;
+    border-color: #157347;
+    color: white;
+}
+
+.list-group-item-action.active:focus {
+    background-color: #157347;
+    border-color: #157347;
+    color: white;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.5);
+}
+</style>
 {% endblock %}

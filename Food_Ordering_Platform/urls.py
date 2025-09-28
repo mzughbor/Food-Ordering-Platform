@@ -26,6 +26,7 @@ def redirect_to_home(request):
 
 urlpatterns = [
     path('admin/', admin_site.urls),  # Use custom admin site
+    path("admin-api/", include("admin_panel.urls", namespace="admin")),  # Admin API endpoints
     path("", redirect_to_home, name="home"),
     path("users/", include("users.urls", namespace="users")),
     path("meals/", include("meals.urls", namespace="meals")),

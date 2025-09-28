@@ -78,7 +78,7 @@
                         <button class="btn btn-outline-secondary quantity-btn" id="decreaseQty">
                             <ion-icon name="remove-outline"></ion-icon>
                         </button>
-                        <input type="number" class="form-control quantity-input text-center mx-3" id="quantity" value="1" min="1" max="10" style="width: 80px;">
+                        <input type="number" class="form-control quantity-input text-center mx-3" id="quantity" value="1" min="1" max="25" style="width: 80px;">
                         <button class="btn btn-outline-secondary quantity-btn" id="increaseQty">
                             <ion-icon name="add-outline"></ion-icon>
                         </button>
@@ -90,6 +90,8 @@
                     {% if meal.is_available %}
                         <button class="btn btn-primary btn-lg w-100 mb-3 add-to-cart-btn" 
                                 data-meal-id="{{ meal.id }}" 
+                                data-meal-name="{{ meal.name }}"
+                                data-meal-price="{{ meal.price }}"
                                 id="addToCartBtn">
                             <ion-icon name="cart-outline" class="me-2"></ion-icon>
                             Add to Cart - $<span id="totalPrice">{{ meal.price }}</span>
@@ -102,9 +104,11 @@
                     {% endif %}
                     
                     <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary flex-fill">
-                            <ion-icon name="heart-outline" class="me-2"></ion-icon>
-                            Add to Favorites
+                        <button class="btn btn-outline-success flex-fill toggle-favorite-btn" 
+                                data-meal-id="{{ meal.id }}"
+                                data-is-favorite="{{ meal.is_favorite|yesno:'true,false' }}">
+                            <ion-icon name="{% if meal.is_favorite %}heart{% else %}heart-outline{% endif %}" class="me-2"></ion-icon>
+                            <span class="favorite-text">{% if meal.is_favorite %}Remove from Favorites{% else %}Add to Favorites{% endif %}</span>
                         </button>
                         <button class="btn btn-outline-secondary flex-fill">
                             <ion-icon name="share-outline" class="me-2"></ion-icon>
@@ -292,7 +296,7 @@
         
         increaseBtn.addEventListener('click', function() {
             const currentValue = parseInt(quantityInput.value);
-            if (currentValue < 10) {
+            if (currentValue < 25) {
                 quantityInput.value = currentValue + 1;
                 updateTotalPrice();
             }
@@ -300,7 +304,7 @@
         
         quantityInput.addEventListener('change', function() {
             if (this.value < 1) this.value = 1;
-            if (this.value > 10) this.value = 10;
+            if (this.value > 25) this.value = 25;
             updateTotalPrice();
         });
         
@@ -309,6 +313,9 @@
             const totalPrice = (basePrice * quantity).toFixed(2);
             totalPriceSpan.textContent = totalPrice;
         }
+        
+        // Make updateTotalPrice globally accessible for cart.js
+        window.updateTotalPrice = updateTotalPrice;
         
         // Add to cart functionality - handled by cart.js
         // The add-to-cart-btn class will be handled by the CartManager
@@ -328,6 +335,92 @@
             }, 3000);
         }
     });
+    
+    // Notification function for favorite button
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; max-width: 400px;';
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <ion-icon name="${type === 'success' ? 'checkmark-circle' : type === 'error' ? 'alert-circle' : 'information-circle'}" class="me-2"></ion-icon>
+                <span>${message}</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 4000);
+    }
+    
+    // Favorite button functionality
+    const favoriteButton = document.querySelector('.toggle-favorite-btn');
+    if (favoriteButton) {
+        favoriteButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const mealId = this.getAttribute('data-meal-id');
+            const isFavorite = this.getAttribute('data-is-favorite') === 'true';
+            const icon = this.querySelector('ion-icon');
+            const text = this.querySelector('.favorite-text');
+            
+            // Show loading state
+            this.disabled = true;
+            const originalText = text.textContent;
+            text.textContent = 'Loading...';
+            
+            // Make AJAX request
+            fetch(`/meals/toggle-favorite/${mealId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update button state
+                    const newIsFavorite = data.is_favorite;
+                    this.setAttribute('data-is-favorite', newIsFavorite);
+                    
+                    if (newIsFavorite) {
+                        icon.setAttribute('name', 'heart');
+                        text.textContent = 'Remove from Favorites';
+                        this.classList.remove('btn-outline-success');
+                        this.classList.add('btn-success');
+                    } else {
+                        icon.setAttribute('name', 'heart-outline');
+                        text.textContent = 'Add to Favorites';
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-outline-success');
+                    }
+                    
+                    // Show success message
+                    showNotification(data.message, 'success');
+                } else {
+                    // Show error message
+                    showNotification('Error: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error updating favorites', 'error');
+            })
+            .finally(() => {
+                // Reset button state
+                this.disabled = false;
+            });
+        });
+    }
 </script>
 
 <!-- Include Cart JavaScript -->
@@ -338,6 +431,37 @@
     .add-to-cart-popup {
         animation: slideInUp 0.3s ease-out;
         z-index: 9999;
+    }
+    
+    /* Favorite Button Styling */
+    .toggle-favorite-btn {
+        transition: all 0.3s ease;
+    }
+
+    .toggle-favorite-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+    }
+
+    .toggle-favorite-btn.btn-success {
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+    .toggle-favorite-btn.btn-success:hover {
+        background-color: #157347;
+        border-color: #157347;
+    }
+
+    .toggle-favorite-btn.btn-outline-success {
+        color: #198754;
+        border-color: #198754;
+    }
+
+    .toggle-favorite-btn.btn-outline-success:hover {
+        background-color: #198754;
+        border-color: #198754;
+        color: white;
     }
 
     .popup-content {

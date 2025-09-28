@@ -4,38 +4,54 @@
 {% block title %}Admin Dashboard - FoodOrdering{% endblock %}
 
 {% block content %}
+<!-- CSRF Token for AJAX requests -->
+{% csrf_token %}
+
 <!-- Admin Dashboard -->
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 admin-sidebar p-0">
             <div class="p-3">
-                <h5 class="text-dark fw-bold mb-4">
+                <h5 class="fw-bold mb-4">
                     <ion-icon name="settings-outline" class="me-2"></ion-icon>
                     Admin Panel
                 </h5>
                 <nav class="nav flex-column">
-                    <a class="nav-link active text-dark fw-medium" href="#dashboard">
+                    <a class="nav-link active fw-medium admin-nav-link" href="#dashboard" data-section="dashboard">
                         <ion-icon name="grid-outline" class="me-2"></ion-icon>
                         Dashboard
+                        <span class="badge bg-primary ms-auto">{{ total_users|add:total_restaurants|add:total_orders }}</span>
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="#users">
+                    <a class="nav-link fw-medium admin-nav-link" href="#users" data-section="users">
                         <ion-icon name="people-outline" class="me-2"></ion-icon>
                         User Management
+                        <span class="badge bg-success ms-auto">{{ total_users }}</span>
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="{% url 'restaurants:dashboard' %}">
+                    <a class="nav-link fw-medium admin-nav-link" href="#restaurants" data-section="restaurants">
                         <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
                         Restaurants
+                        <span class="badge bg-warning ms-auto">{{ total_restaurants }}</span>
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="{% url 'orders:delivery_dashboard' %}">
+                    <a class="nav-link fw-medium admin-nav-link" href="#orders" data-section="orders">
                         <ion-icon name="receipt-outline" class="me-2"></ion-icon>
                         Orders
+                        <span class="badge bg-info ms-auto">{{ total_orders }}</span>
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="#settings">
+                    <a class="nav-link fw-medium admin-nav-link" href="#meals" data-section="meals">
+                        <ion-icon name="fast-food-outline" class="me-2"></ion-icon>
+                        Meals
+                        <span class="badge bg-secondary ms-auto">0</span>
+                    </a>
+                    <a class="nav-link fw-medium admin-nav-link" href="#analytics" data-section="analytics">
+                        <ion-icon name="bar-chart-outline" class="me-2"></ion-icon>
+                        Analytics
+                    </a>
+                    <a class="nav-link fw-medium admin-nav-link" href="#settings" data-section="settings">
                         <ion-icon name="cog-outline" class="me-2"></ion-icon>
                         Settings
                     </a>
-                    <a class="nav-link text-dark fw-medium" href="{% url 'users:home' %}">
+                    <a class="nav-link fw-medium" href="{% url 'users:home' %}">
                         <ion-icon name="arrow-back-outline" class="me-2"></ion-icon>
                         Back to Site
                     </a>
@@ -49,13 +65,21 @@
             <div class="admin-header">
                 <div class="container-fluid">
                     <div class="row align-items-center">
-                        <div class="col">
-                            <h2 class="text-dark fw-bold mb-0">Admin Dashboard</h2>
-                            <p class="text-muted mb-0">Manage your food ordering platform</p>
+                        <div class="col-auto">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary" id="simpleViewBtn" onclick="toggleView('simple')">
+                                    <ion-icon name="grid-outline" class="me-1"></ion-icon>
+                                    Simple View
+                                </button>
+                                <button type="button" class="btn btn-primary" id="comprehensiveViewBtn" onclick="toggleView('comprehensive')">
+                                    <ion-icon name="layers-outline" class="me-1"></ion-icon>
+                                    Comprehensive View
+                                </button>
+                            </div>
                         </div>
                         <div class="col-auto">
                             <div class="d-flex align-items-center">
-                                <span class="text-muted me-3">Welcome, {{ user.username }}</span>
+                                <span class="text-body-secondary me-3">Welcome, {{ user.username }}</span>
                                 <div class="dropdown">
                                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                         <ion-icon name="person-circle-outline" class="me-1"></ion-icon>
@@ -76,6 +100,8 @@
 
             <!-- Dashboard Content -->
             <div class="container-fluid py-4">
+                <!-- Dashboard Section (Default) -->
+                <div id="dashboard-section" class="admin-section">
                 <!-- Stats Cards -->
                 <div class="row mb-4">
                     <div class="col-md-3 mb-3">
@@ -85,8 +111,8 @@
                                     <ion-icon name="people"></ion-icon>
                                 </div>
                                 <div>
-                                    <h3 class="fw-bold text-dark mb-0">{{ total_users }}</h3>
-                                    <p class="text-muted mb-0">Total Users</p>
+                                    <h3 class="fw-bold mb-0">{{ total_users }}</h3>
+                                    <p class="text-body-secondary mb-0">Total Users</p>
                                 </div>
                             </div>
                         </div>
@@ -98,8 +124,8 @@
                                     <ion-icon name="restaurant"></ion-icon>
                                 </div>
                                 <div>
-                                    <h3 class="fw-bold text-dark mb-0">{{ total_restaurants }}</h3>
-                                    <p class="text-muted mb-0">Restaurants</p>
+                                    <h3 class="fw-bold mb-0">{{ total_restaurants }}</h3>
+                                    <p class="text-body-secondary mb-0">Restaurants</p>
                                 </div>
                             </div>
                         </div>
@@ -111,8 +137,8 @@
                                     <ion-icon name="receipt"></ion-icon>
                                 </div>
                                 <div>
-                                    <h3 class="fw-bold text-dark mb-0">{{ total_orders }}</h3>
-                                    <p class="text-muted mb-0">Total Orders</p>
+                                    <h3 class="fw-bold mb-0">{{ total_orders }}</h3>
+                                    <p class="text-body-secondary mb-0">Total Orders</p>
                                 </div>
                             </div>
                         </div>
@@ -124,8 +150,8 @@
                                     <ion-icon name="cash"></ion-icon>
                                 </div>
                                 <div>
-                                    <h3 class="fw-bold text-dark mb-0">${{ total_revenue }}</h3>
-                                    <p class="text-muted mb-0">Revenue</p>
+                                    <h3 class="fw-bold mb-0">${{ total_revenue }}</h3>
+                                    <p class="text-body-secondary mb-0">Revenue</p>
                                 </div>
                             </div>
                         </div>
@@ -134,13 +160,17 @@
 
                 <!-- User Management Section -->
                 <div class="settings-section">
-                    <h4>Admin view of all users</h4>
+                    <h4 class="mb-4">
+                        <ion-icon name="people-outline" class="me-2"></ion-icon>
+                        User Management
+                        <span class="badge bg-primary ms-2">{{ users|length }}</span>
+                    </h4>
                     
                     <!-- Filters -->
                     <div class="row mb-3">
                         <div class="col-md-3">
-                            <select class="form-select filter-dropdown">
-                                <option selected>Category</option>
+                            <select class="form-select filter-dropdown" id="dashboardRoleFilter" name="dashboardRoleFilter">
+                                <option value="">All Roles</option>
                                 <option value="customer">Customer</option>
                                 <option value="owner">Restaurant Owner</option>
                                 <option value="delivery">Delivery Person</option>
@@ -148,18 +178,16 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <select class="form-select filter-dropdown">
-                                <option selected>City</option>
-                                <option value="alexandria">Alexandria</option>
-                                <option value="cairo">Cairo</option>
-                                <option value="giza">Giza</option>
-                                <option value="sharm">Sharm El Sheikh</option>
+                            <select class="form-select filter-dropdown" id="dashboardStatusFilter" name="dashboardStatusFilter">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Search users...">
-                                <button class="btn btn-outline-secondary" type="button">
+                                <input type="text" class="form-control" id="dashboardUserSearch" name="dashboardUserSearch" placeholder="Search users...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchDashboardUsers()">
                                     <ion-icon name="search"></ion-icon>
                                 </button>
                             </div>
@@ -180,15 +208,13 @@
                             </thead>
                             <tbody>
                                 {% for user in users %}
-                                <tr>
+                                <tr data-role="{{ user.role }}" data-status="{{ user.is_active|yesno:'active,inactive' }}">
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
-                                                {{ user.username|first|upper }}
-                                            </div>
+                                            <ion-icon name="person-circle-outline" class="me-2" style="font-size: 1.5rem; color: var(--bs-primary);"></ion-icon>
                                             <div>
                                                 <h6 class="mb-0 fw-bold">{{ user.username }}</h6>
-                                                <small class="text-muted">{{ user.get_full_name|default:"No name" }}</small>
+                                                <small class="text-body-secondary">{{ user.get_full_name|default:"No name" }}</small>
                                             </div>
                                         </div>
                                     </td>
@@ -204,12 +230,27 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary edit-user-btn" 
+                                                    data-user-id="{{ user.id }}" 
+                                                    data-user-name="{{ user.username }}"
+                                                    title="Edit User">
                                             <ion-icon name="create-outline"></ion-icon>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-danger">
+                                            <button class="btn btn-sm btn-outline-warning toggle-user-status-btn" 
+                                                    data-user-id="{{ user.id }}" 
+                                                    data-user-name="{{ user.username }}"
+                                                    data-is-active="{{ user.is_active|yesno:'true,false' }}"
+                                                    title="Toggle Status">
+                                                <ion-icon name="{% if user.is_active %}eye-off-outline{% else %}eye-outline{% endif %}"></ion-icon>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger delete-user-btn" 
+                                                    data-user-id="{{ user.id }}" 
+                                                    data-user-name="{{ user.username }}"
+                                                    title="Delete User">
                                             <ion-icon name="trash-outline"></ion-icon>
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -221,54 +262,280 @@
                 <!-- Platform Settings Section -->
                 <div class="settings-section">
                     <h4>Platform - Settings</h4>
-                    <h6 class="text-muted mb-3">Platform Information</h6>
+                    <h6 class="text-body-secondary mb-3">Platform Information</h6>
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="form-floating">
-                                <input type="text" class="form-control" id="siteName" placeholder="Site Name" value="FoodOrdering">
-                                <label for="siteName">Site Name</label>
+                    <form id="platformSettingsForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="siteName" name="siteName" placeholder="Site Name" value="">
+                                    <label for="siteName">Site Name</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="email" class="form-control" id="contactEmail" name="contactEmail" placeholder="Contact Email" value="">
+                                    <label for="contactEmail">Contact Email</label>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        
+                        <div class="mb-3">
                             <div class="form-floating">
-                                <input type="text" class="form-control" id="siteLogo" placeholder="Site logo file path" value="/img/logo.png">
-                                <label for="siteLogo">Site logo file path</label>
+                                <textarea class="form-control" id="siteDescription" name="siteDescription" style="height: 100px" placeholder="About / Description"></textarea>
+                                <label for="siteDescription">About / Description</label>
                             </div>
-                            <button class="btn btn-outline-secondary btn-sm mt-2">
-                                <ion-icon name="folder-outline" class="me-1"></ion-icon>
-                                Browse...
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="tel" class="form-control" id="supportPhone" name="supportPhone" placeholder="Support Phone Number" value="">
+                                    <label for="supportPhone">Support Phone Number</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="email" class="form-control" id="supportEmail" name="supportEmail" placeholder="Support Email" value="">
+                                    <label for="supportEmail">Support Email</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="defaultDeliveryFee" name="defaultDeliveryFee" placeholder="Default Delivery Fee" step="0.01" min="0" value="">
+                                    <label for="defaultDeliveryFee">Default Delivery Fee ($)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="freeDeliveryThreshold" name="freeDeliveryThreshold" placeholder="Free Delivery Threshold" step="0.01" min="0" value="">
+                                    <label for="freeDeliveryThreshold">Free Delivery Threshold ($)</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="button" class="btn btn-outline-secondary me-2" onclick="loadPlatformSettings()">
+                                <ion-icon name="refresh-outline" class="me-1"></ion-icon>
+                                Refresh
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="savePlatformSettings()">
+                                <ion-icon name="save-outline" class="me-1"></ion-icon>
+                                Save Settings
                             </button>
                         </div>
-                    </div>
+                    </form>
+                </div>
+
+                <!-- Recent Orders Section -->
+                <div class="settings-section">
+                    <h4 class="mb-4">
+                        <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                        Recent Orders
+                        <span class="badge bg-success ms-2">{{ recent_orders|length }}</span>
+                    </h4>
                     
-                    <div class="mb-3">
-                        <div class="form-floating">
-                            <textarea class="form-control" id="siteDescription" style="height: 100px" placeholder="About / Description">FoodOrdering is a comprehensive food delivery platform that connects customers with local restaurants, providing a seamless ordering experience with real-time tracking and multiple payment options.</textarea>
-                            <label for="siteDescription">About / Description</label>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Restaurant</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td><span class="fw-bold">#{{ order.id }}</span></td>
+                                    <td>{{ order.user.username }}</td>
+                                    <td>{{ order.restaurant.name|default:"N/A" }}</td>
+                                    <td class="fw-bold text-success">${{ order.total_amount }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if order.status == 'delivered' %}success{% elif order.status == 'confirmed' %}warning{% elif order.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary edit-order-btn" 
+                                                    data-order-id="{{ order.id }}" 
+                                                    title="Edit Order">
+                                                <ion-icon name="create-outline"></ion-icon>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info update-order-status-btn" 
+                                                    data-order-id="{{ order.id }}" 
+                                                    data-current-status="{{ order.status }}"
+                                                    title="Update Status">
+                                                <ion-icon name="refresh-outline"></ion-icon>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger delete-order-btn" 
+                                                    data-order-id="{{ order.id }}" 
+                                                    title="Delete Order">
+                                                <ion-icon name="trash-outline"></ion-icon>
+                                            </button>
+            </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-body-secondary py-4">
+                                        <ion-icon name="receipt-outline" style="font-size: 48px; color: #ccc;" class="mb-3 d-block"></ion-icon>
+                                        <p class="mb-0">No orders yet</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                </div> <!-- End Dashboard Section -->
+                
+                <!-- Simple View Section (Hidden by default) -->
+                <div id="simple-view-section" class="admin-section" style="display: none;">
+                    <!-- Simple Overview Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <ion-icon name="people" style="font-size: 2rem;" class="mb-2"></ion-icon>
+                                    <h3 class="fw-bold mb-0">{{ total_users }}</h3>
+                                    <p class="mb-0">Total Users</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <ion-icon name="restaurant" style="font-size: 2rem;" class="mb-2"></ion-icon>
+                                    <h3 class="fw-bold mb-0">{{ total_restaurants }}</h3>
+                                    <p class="mb-0">Restaurants</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <ion-icon name="receipt" style="font-size: 2rem;" class="mb-2"></ion-icon>
+                                    <h3 class="fw-bold mb-0">{{ total_orders }}</h3>
+                                    <p class="mb-0">Total Orders</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <ion-icon name="cash" style="font-size: 2rem;" class="mb-2"></ion-icon>
+                                    <h3 class="fw-bold mb-0">${{ total_revenue }}</h3>
+                                    <p class="mb-0">Revenue</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
+
+                    <!-- Simple Quick Actions -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <ion-icon name="flash-outline" class="me-2"></ion-icon>
+                                        Quick Actions
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <button class="btn btn-outline-primary w-100" onclick="showSection('users')">
+                                                <ion-icon name="people-outline" class="me-2"></ion-icon>
+                                                Manage Users
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <button class="btn btn-outline-success w-100" onclick="showSection('restaurants')">
+                                                <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                                                Manage Restaurants
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <button class="btn btn-outline-warning w-100" onclick="showSection('orders')">
+                                                <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                                                Manage Orders
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <button class="btn btn-outline-info w-100" onclick="showSection('settings')">
+                                                <ion-icon name="settings-outline" class="me-2"></ion-icon>
+                                                Platform Settings
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simple Recent Activity -->
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="form-floating">
-                                <input type="email" class="form-control" id="contactEmail" placeholder="Contact Email" value="admin@foodordering.com">
-                                <label for="contactEmail">Contact Email</label>
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <ion-icon name="people-outline" class="me-2"></ion-icon>
+                                        Recent Users
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    {% for user in users|slice:":5" %}
+                                    <div class="d-flex align-items-center mb-3">
+                                        <ion-icon name="person-circle-outline" class="me-2" style="font-size: 1.5rem; color: var(--bs-primary);"></ion-icon>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0 fw-bold">{{ user.username }}</h6>
+                                            <small class="text-body-secondary">{{ user.get_role_display }}</small>
+                                        </div>
+                                        <span class="badge bg-{% if user.is_active %}success{% else %}danger{% endif %}">
+                                            {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="form-floating">
-                                <input type="tel" class="form-control" id="supportPhone" placeholder="Support Phone Number" value="+1 (555) 123-4567">
-                                <label for="supportPhone">Support Phone Number</label>
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                                        Recent Orders
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    {% for order in recent_orders|slice:":5" %}
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">Order #{{ order.id }}</h6>
+                                            <small class="text-body-secondary">{{ order.user.username }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="fw-bold text-success">${{ order.total_amount }}</span>
+                                            <br>
+                                            <span class="badge bg-{% if order.status == 'delivered' %}success{% elif order.status == 'confirmed' %}warning{% elif order.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                                                {{ order.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="text-end">
-                        <button class="btn btn-save">
-                            <ion-icon name="save-outline" class="me-1"></ion-icon>
-                            Save
-                        </button>
                     </div>
                 </div>
             </div>
@@ -278,26 +545,34 @@
 
 <!-- Admin Dashboard Styles -->
 <style>
+    :root {
+        --primary-green: #198754;
+        --secondary-green: #157347;
+        --border-radius-sm: 0.375rem;
+        --border-radius-md: 0.5rem;
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
     .admin-sidebar {
         min-height: 100vh;
-        background: var(--bg-light);
-        border-right: 1px solid var(--border-color);
+        background: var(--bs-body-bg);
+        border-right: 1px solid var(--bs-border-color);
     }
     
     .admin-content {
         min-height: 100vh;
-        background: var(--bg-white);
+        background: var(--bs-body-bg);
     }
     
     .admin-header {
-        background: var(--bg-white);
-        border-bottom: 1px solid var(--border-color);
+        background: var(--bs-body-bg);
+        border-bottom: 1px solid var(--bs-border-color);
         padding: 1rem 0;
     }
     
     .stats-card {
-        background: var(--bg-white);
-        border: 1px solid var(--border-color);
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
         border-radius: var(--border-radius-md);
         padding: 1.5rem;
         transition: all 0.3s ease;
@@ -320,21 +595,22 @@
     }
     
     .user-table {
-        background: var(--bg-white);
+        background: var(--bs-body-bg);
         border-radius: var(--border-radius-md);
         overflow: hidden;
     }
     
     .user-table th {
-        background: var(--bg-light);
-        border-bottom: 2px solid var(--border-color);
+        background: var(--bs-secondary-bg);
+        border-bottom: 2px solid var(--bs-border-color);
         font-weight: 600;
-        color: var(--text-dark);
+        color: var(--bs-body-color);
     }
     
     .user-table td {
         vertical-align: middle;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--bs-border-color);
+        color: var(--bs-body-color);
     }
     
     .status-badge {
@@ -355,22 +631,22 @@
     }
     
     .settings-section {
-        background: var(--bg-white);
-        border: 1px solid var(--border-color);
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
         border-radius: var(--border-radius-md);
         padding: 2rem;
         margin-bottom: 2rem;
     }
     
     .settings-section h4 {
-        color: var(--text-dark);
+        color: var(--bs-body-color);
         margin-bottom: 1.5rem;
         padding-bottom: 0.5rem;
         border-bottom: 2px solid var(--primary-green);
     }
     
     .form-floating > label {
-        color: var(--text-muted);
+        color: var(--bs-body-color);
     }
     
     .btn-save {
@@ -390,16 +666,135 @@
     }
     
     .filter-dropdown {
-        background: var(--bg-white);
-        border: 1px solid var(--border-color);
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
         border-radius: var(--border-radius-sm);
         padding: 0.5rem 1rem;
-        color: var(--text-dark);
+        color: var(--bs-body-color);
     }
     
     .filter-dropdown:focus {
         border-color: var(--primary-green);
         box-shadow: 0 0 0 0.2rem rgba(148, 216, 45, 0.25);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .admin-sidebar {
+            min-height: auto;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .admin-content {
+            padding-top: 1rem;
+        }
+        
+        .stats-card {
+            margin-bottom: 1rem;
+        }
+        
+        .user-table {
+            font-size: 0.875rem;
+        }
+        
+        .settings-section {
+            padding: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .admin-header .row {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+        
+        .admin-header .col-auto {
+            margin-top: 1rem;
+        }
+        
+        .filter-dropdown {
+            margin-bottom: 0.5rem;
+        }
+    }
+    
+    /* Admin Section Management */
+    .admin-section {
+        display: none;
+    }
+    
+    .admin-section:first-child {
+        display: block;
+    }
+    
+    .admin-nav-link {
+        transition: all 0.3s ease;
+        border-radius: 0.375rem;
+        margin-bottom: 0.25rem;
+        color: var(--bs-body-color) !important;
+    }
+    
+    /* Dark mode fixes for cards and containers */
+    .card {
+        background-color: var(--bs-body-bg) !important;
+        border-color: var(--bs-border-color) !important;
+    }
+    
+    .card-header {
+        background-color: var(--bs-secondary-bg) !important;
+        border-bottom-color: var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .card-body {
+        background-color: var(--bs-body-bg) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .table {
+        --bs-table-bg: var(--bs-body-bg);
+        --bs-table-color: var(--bs-body-color);
+        --bs-table-border-color: var(--bs-border-color);
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--bs-body-bg) !important;
+        border-color: var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bs-body-bg) !important;
+        border-color: var(--primary-green) !important;
+        color: var(--bs-body-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+    }
+    
+    .btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-warning, .btn-outline-info, .btn-outline-danger {
+        border-color: var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .btn-outline-primary:hover, .btn-outline-secondary:hover, .btn-outline-success:hover, .btn-outline-warning:hover, .btn-outline-info:hover, .btn-outline-danger:hover {
+        background-color: var(--bs-secondary-bg) !important;
+        border-color: var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .admin-nav-link:hover {
+        background-color: var(--bs-secondary-bg);
+        transform: translateX(5px);
+        color: var(--bs-body-color) !important;
+    }
+    
+    .admin-nav-link.active {
+        background-color: var(--primary-green);
+        color: white !important;
+    }
+    
+    .admin-nav-link.active .badge {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
     }
 </style>
 
@@ -407,6 +802,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🎛️ Admin Dashboard loaded');
+        
+        // Load platform settings on page load
+        loadPlatformSettings();
         
         // User table row selection
         const tableRows = document.querySelectorAll('.user-table tbody tr');
@@ -449,7 +847,99 @@
                 // Implement filtering logic here
             });
         });
+        
+        // Dynamic Sidebar Navigation
+        const adminNavLinks = document.querySelectorAll('.admin-nav-link');
+        adminNavLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                adminNavLinks.forEach(l => l.classList.remove('active'));
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Get section name
+                const section = this.getAttribute('data-section');
+                showAdminSection(section);
+            });
+        });
+        
+        // User Management Actions
+        const editUserBtns = document.querySelectorAll('.edit-user-btn');
+        editUserBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+                showUserEditModal(userId, userName);
+            });
+        });
+        
+        const toggleUserStatusBtns = document.querySelectorAll('.toggle-user-status-btn');
+        toggleUserStatusBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+                const isActive = this.getAttribute('data-is-active') === 'true';
+                toggleUserStatus(userId, userName, isActive);
+            });
+        });
+        
+        const deleteUserBtns = document.querySelectorAll('.delete-user-btn');
+        deleteUserBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+                deleteUser(userId, userName);
+            });
+        });
+        
+        // Order Management Actions
+        const editOrderBtns = document.querySelectorAll('.edit-order-btn');
+        editOrderBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                showOrderEditModal(orderId);
+            });
+        });
+        
+        const updateOrderStatusBtns = document.querySelectorAll('.update-order-status-btn');
+        updateOrderStatusBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                const currentStatus = this.getAttribute('data-current-status');
+                showOrderStatusModal(orderId, currentStatus);
+            });
+        });
+        
+        const deleteOrderBtns = document.querySelectorAll('.delete-order-btn');
+        deleteOrderBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                deleteOrder(orderId);
+            });
+        });
     });
+    
+    // Get CSRF token function
+    function getCSRFToken() {
+        // Try to get from meta tag first
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            return metaToken.getAttribute('content');
+        }
+        
+        // Fallback to cookie
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                return value;
+            }
+        }
+        
+        return null;
+    }
     
     function showNotification(message, type = 'info') {
         // Create notification element
@@ -471,5 +961,3000 @@
             }
         }, 5000);
     }
+    
+    // User Management Functions
+    function showUserEditModal(userId, userName) {
+        // Fetch user data and show edit modal
+        fetch(`/admin-api/users/${userId}/edit/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showUserEditForm(data.user);
+            } else {
+                showNotification(data.error || 'Failed to load user data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load user data', 'error');
+        });
+    }
+    
+    function showUserEditForm(user) {
+        const modalHtml = `
+            <div class="modal fade" id="userEditModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit User: ${user.username}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="userEditForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="editUsername" value="${user.username}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="editEmail" value="${user.email}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="editFirstName" value="${user.first_name || ''}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="editLastName" value="${user.last_name || ''}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Role</label>
+                                        <select class="form-select" id="editRole">
+                                            <option value="customer" ${user.role === 'customer' ? 'selected' : ''}>Customer</option>
+                                            <option value="owner" ${user.role === 'owner' ? 'selected' : ''}>Owner</option>
+                                            <option value="delivery" ${user.role === 'delivery' ? 'selected' : ''}>Delivery</option>
+                                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check mt-4">
+                                            <input class="form-check-input" type="checkbox" id="editIsActive" ${user.is_active ? 'checked' : ''}>
+                                            <label class="form-check-label">Active Account</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="saveUserEdit(${user.id})">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('userEditModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('userEditModal'));
+        modal.show();
+    }
+    
+    function saveUserEdit(userId) {
+        const formData = {
+            username: document.getElementById('editUsername').value,
+            email: document.getElementById('editEmail').value,
+            first_name: document.getElementById('editFirstName').value,
+            last_name: document.getElementById('editLastName').value,
+            role: document.getElementById('editRole').value,
+            is_active: document.getElementById('editIsActive').checked
+        };
+        
+        fetch(`/admin-api/users/${userId}/edit/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('userEditModal'));
+                modal.hide();
+                // Refresh the page to show updated data
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.error || 'Failed to update user', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to update user', 'error');
+        });
+    }
+    
+    function toggleUserStatus(userId, userName, isActive) {
+        const action = isActive ? 'deactivate' : 'activate';
+        if (confirm(`Are you sure you want to ${action} user "${userName}"?`)) {
+            // AJAX call to toggle user status
+            fetch(`/admin-api/users/${userId}/toggle-status/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({is_active: !isActive})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`User "${userName}" ${action}d successfully!`, 'success');
+                    location.reload(); // Refresh to show updated status
+                } else {
+                    showNotification(`Error: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error updating user status', 'error');
+            });
+        }
+    }
+    
+    function deleteUser(userId, userName) {
+        if (confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone!`)) {
+            // AJAX call to delete user
+            fetch(`/admin-api/users/${userId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`User "${userName}" deleted successfully!`, 'success');
+                    location.reload(); // Refresh to remove deleted user
+                } else {
+                    showNotification(`Error: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error deleting user', 'error');
+            });
+        }
+    }
+    
+    // Order Management Functions
+    function showOrderEditModal(orderId) {
+        // Fetch order data and show edit modal
+        fetch(`/admin-api/orders/${orderId}/edit/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showOrderEditForm(data.order);
+            } else {
+                showNotification(data.error || 'Failed to load order data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load order data', 'error');
+        });
+    }
+    
+    function showOrderEditForm(order) {
+        const modalHtml = `
+            <div class="modal fade" id="orderEditModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <ion-icon name="create-outline" class="me-2"></ion-icon>
+                                Edit Order: #${order.id}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="orderEditForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Order ID</label>
+                                        <input type="text" class="form-control" value="${order.id}" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Customer</label>
+                                        <input type="text" class="form-control" value="${order.user_name || 'N/A'}" readonly>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Restaurant</label>
+                                        <input type="text" class="form-control" value="${order.restaurant_name || 'N/A'}" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Order Date</label>
+                                        <input type="text" class="form-control" value="${new Date(order.created_at).toLocaleDateString()}" readonly>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Total Amount ($)</label>
+                                        <input type="number" class="form-control" id="editOrderTotal" value="${order.total_amount}" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Status</label>
+                                        <select class="form-select" id="editOrderStatus" required>
+                                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                            <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                                            <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info">
+                                    <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                    <small>You can edit the total amount and status of this order. Other details are read-only.</small>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="saveOrderEdit(${order.id})">
+                                <ion-icon name="save-outline" class="me-1"></ion-icon>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('orderEditModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('orderEditModal'));
+        modal.show();
+    }
+    
+    function saveOrderEdit(orderId) {
+        const formData = {
+            total_amount: parseFloat(document.getElementById('editOrderTotal').value),
+            status: document.getElementById('editOrderStatus').value
+        };
+        
+        fetch(`/admin-api/orders/${orderId}/edit/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message || 'Order updated successfully!', 'success');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('orderEditModal'));
+                modal.hide();
+                // Refresh the page to show updated data
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.error || 'Failed to update order', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to update order', 'error');
+        });
+    }
+    
+    function showOrderStatusModal(orderId, currentStatus) {
+        const statusOptions = [
+            { value: 'pending', label: 'Pending', color: 'secondary' },
+            { value: 'confirmed', label: 'Confirmed', color: 'warning' },
+            { value: 'preparing', label: 'Preparing', color: 'info' },
+            { value: 'ready', label: 'Ready', color: 'primary' },
+            { value: 'delivered', label: 'Delivered', color: 'success' },
+            { value: 'cancelled', label: 'Cancelled', color: 'danger' }
+        ];
+        
+        const modalHtml = `
+            <div class="modal fade" id="orderStatusModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <ion-icon name="refresh-outline" class="me-2"></ion-icon>
+                                Update Order Status
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Order #${orderId}</label>
+                                <p class="text-muted mb-3">Current Status: <span class="badge bg-${statusOptions.find(s => s.value === currentStatus)?.color || 'secondary'}">${statusOptions.find(s => s.value === currentStatus)?.label || currentStatus}</span></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Select New Status</label>
+                                <select class="form-select" id="orderStatusSelect" size="6">
+                                    ${statusOptions.map(status => `
+                                        <option value="${status.value}" ${status.value === currentStatus ? 'selected' : ''} 
+                                                data-color="${status.color}">
+                                            ${status.label}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <div class="alert alert-info">
+                                <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                <small>Select the new status for this order and click "Update Status" to confirm.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="updateOrderStatusFromModal(${orderId})">
+                                <ion-icon name="checkmark-outline" class="me-1"></ion-icon>
+                                Update Status
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('orderStatusModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('orderStatusModal'));
+        modal.show();
+        
+        // Add visual feedback when selecting status
+        const statusSelect = document.getElementById('orderStatusSelect');
+        statusSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const color = selectedOption.getAttribute('data-color');
+            this.className = `form-select border-${color}`;
+        });
+    }
+    
+    function updateOrderStatusFromModal(orderId) {
+        const newStatus = document.getElementById('orderStatusSelect').value;
+        const currentStatus = document.querySelector('#orderStatusModal .badge').textContent.trim();
+        
+        if (newStatus && newStatus !== currentStatus.toLowerCase()) {
+            updateOrderStatus(orderId, newStatus);
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('orderStatusModal'));
+            modal.hide();
+        } else {
+            showNotification('Please select a different status', 'warning');
+        }
+    }
+    
+    function updateOrderStatus(orderId, newStatus) {
+        fetch(`/admin-api/orders/${orderId}/update-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({status: newStatus})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(`Order #${orderId} status updated to ${newStatus}!`, 'success');
+                location.reload(); // Refresh to show updated status
+            } else {
+                showNotification(`Error: ${data.error}`, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error updating order status', 'error');
+        });
+    }
+    
+    function deleteOrder(orderId) {
+        if (confirm(`Are you sure you want to delete Order #${orderId}? This action cannot be undone!`)) {
+            fetch(`/admin-api/orders/${orderId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`Order #${orderId} deleted successfully!`, 'success');
+                    location.reload(); // Refresh to remove deleted order
+                } else {
+                    showNotification(`Error: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification('Error deleting order', 'error');
+            });
+        }
+    }
+    
+    // Dynamic Section Management
+    function showAdminSection(sectionName) {
+        console.log('🔄 Switching to section:', sectionName);
+        
+        // Clear all existing content first
+        clearAllContent();
+        
+        // Create and show the new section
+        createAdminSection(sectionName);
+        
+        // Update active navigation
+        updateActiveNavigation(sectionName);
+    }
+    
+    function clearAllContent() {
+        console.log('🧹 Clearing all content...');
+        
+        // Remove all existing admin sections
+        const allSections = document.querySelectorAll('.admin-section');
+        allSections.forEach(section => {
+            console.log('🗑️ Removing section:', section.id);
+            section.remove();
+        });
+        
+        // Clear any modals that might be lingering
+        const existingModals = document.querySelectorAll('.modal');
+        existingModals.forEach(modal => {
+            if (modal.id !== 'orderStatusModal') { // Keep the order status modal
+                modal.remove();
+            }
+        });
+        
+        // Clear any global variables that might cause conflicts
+        if (typeof allRestaurants !== 'undefined') {
+            allRestaurants = [];
+        }
+        if (typeof allUsers !== 'undefined') {
+            allUsers = [];
+        }
+    }
+    
+    function updateActiveNavigation(sectionName) {
+        // Update active navigation
+        const navLinks = document.querySelectorAll('.admin-nav-link');
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('data-section') === sectionName) {
+                link.classList.add('active');
+            }
+        });
+    }
+    
+    function createAdminSection(sectionName) {
+        console.log('🏗️ Creating section:', sectionName);
+        
+        const mainContent = document.querySelector('.admin-content .container-fluid');
+        if (!mainContent) {
+            console.error('❌ Main content container not found!');
+            return;
+        }
+        
+        let sectionContent = '';
+        
+        switch(sectionName) {
+            case 'dashboard':
+                sectionContent = getDashboardContent();
+                break;
+            case 'users':
+                sectionContent = getUserManagementContent();
+                break;
+            case 'restaurants':
+                sectionContent = getRestaurantManagementContent();
+                break;
+            case 'orders':
+                sectionContent = getOrderManagementContent();
+                break;
+            case 'meals':
+                sectionContent = getMealManagementContent();
+                break;
+            case 'analytics':
+                sectionContent = getAnalyticsContent();
+                break;
+            case 'settings':
+                sectionContent = getSettingsContent();
+                break;
+            default:
+                sectionContent = '<div class="alert alert-info">Section coming soon!</div>';
+        }
+        
+        // Create section element
+        const section = document.createElement('div');
+        section.id = `${sectionName}-section`;
+        section.className = 'admin-section';
+        section.innerHTML = sectionContent;
+        section.style.display = 'block';
+        
+        // Replace all content in main container
+        mainContent.innerHTML = '';
+        mainContent.appendChild(section);
+        
+        console.log('✅ Section created and displayed:', sectionName);
+        
+        // Add event listeners for specific sections after a short delay
+        setTimeout(() => {
+            addSectionEventListeners(sectionName);
+        }, 100);
+    }
+    
+    function addSectionEventListeners(sectionName) {
+        console.log('🔗 Adding event listeners for:', sectionName);
+        
+        switch(sectionName) {
+            case 'users':
+                addUserManagementEventListeners();
+                break;
+            case 'restaurants':
+                addRestaurantManagementEventListeners();
+                break;
+            case 'orders':
+                addOrderManagementEventListeners();
+                break;
+            case 'dashboard':
+                addDashboardEventListeners();
+                break;
+        }
+    }
+    
+    function getDashboardContent() {
+        return `
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-0">Dashboard Overview</h2>
+                    <p class="text-body-secondary mb-0">Welcome to the admin dashboard</p>http://localhost:8000/users/admin-dashboard/#restaurants
+                </div>
+            </div>
+            <!-- Stats Cards will be loaded here -->
+        `;
+    }
+    
+    function getUserManagementContent() {
+        return `
+            <div id="users-section" class="admin-section">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2 class="fw-bold mb-0">User Management</h2>
+                        <p class="text-body-secondary mb-0">Manage all platform users</p>
+                    </div>
+                </div>
+            
+            <!-- User Management Tools -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="settings-section">
+                        <div class="row align-items-center mb-3">
+                            <div class="col-md-6">
+                                <h4 class="mb-0">
+                                    <ion-icon name="people-outline" class="me-2"></ion-icon>
+                                    All Users
+                                    <span class="badge bg-primary ms-2">{{ users|length }}</span>
+                                </h4>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-success" onclick="showAddUserModal()">
+                                    <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                    Add New User
+                                </button>
+                                <button class="btn btn-outline-primary" onclick="exportUsers()">
+                                    <ion-icon name="download-outline" class="me-1"></ion-icon>
+                                    Export Users
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Filters -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <select class="form-select filter-dropdown" id="userRoleFilter">
+                                    <option value="">All Roles</option>
+                                    <option value="customer">Customer</option>
+                                    <option value="owner">Restaurant Owner</option>
+                                    <option value="delivery">Delivery Person</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select filter-dropdown" id="userStatusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="userSearchInput" placeholder="Search users...">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">
+                                        <ion-icon name="search"></ion-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Users Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="usersTable">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <input type="checkbox" id="selectAllUsers" onchange="toggleSelectAll()">
+                                        </th>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr data-user-id="{{ user.id }}" data-role="{{ user.role }}" data-status="{{ user.is_active|yesno:'active,inactive' }}">
+                                        <td>
+                                            <input type="checkbox" class="user-checkbox" value="{{ user.id }}">
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <ion-icon name="person-circle-outline" class="me-2" style="font-size: 1.5rem; color: var(--bs-primary);"></ion-icon>
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold">{{ user.username }}</h6>
+                                                    <small class="text-body-secondary">{{ user.get_full_name|default:"No name" }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'owner' %}warning{% elif user.role == 'delivery' %}info{% else %}success{% endif %}">
+                                                {{ user.get_role_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                                {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-outline-primary edit-user-btn" 
+                                                        data-user-id="{{ user.id }}" 
+                                                        data-user-name="{{ user.username }}"
+                                                        title="Edit User">
+                                                    <ion-icon name="create-outline"></ion-icon>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-warning toggle-user-status-btn" 
+                                                        data-user-id="{{ user.id }}" 
+                                                        data-user-name="{{ user.username }}"
+                                                        data-is-active="{{ user.is_active|yesno:'true,false' }}"
+                                                        title="Toggle Status">
+                                                    <ion-icon name="{% if user.is_active %}eye-off-outline{% else %}eye-outline{% endif %}"></ion-icon>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger delete-user-btn" 
+                                                        data-user-id="{{ user.id }}" 
+                                                        data-user-name="{{ user.username }}"
+                                                        title="Delete User">
+                                                    <ion-icon name="trash-outline"></ion-icon>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Bulk Actions -->
+                        <div class="row mt-3" id="bulkActions" style="display: none;">
+                            <div class="col-12">
+                                <div class="alert alert-info d-flex align-items-center justify-content-between">
+                                    <span>
+                                        <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                        <span id="selectedCount">0</span> users selected
+                                    </span>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-warning me-2" onclick="bulkToggleStatus()">
+                                            <ion-icon name="eye-outline" class="me-1"></ion-icon>
+                                            Toggle Status
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="bulkDeleteUsers()">
+                                            <ion-icon name="trash-outline" class="me-1"></ion-icon>
+                                            Delete Selected
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        `;
+    }
+    
+    function getRestaurantManagementContent() {
+        return `
+            <div id="restaurants-section" class="admin-section">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2 class="fw-bold mb-0">Restaurant Management</h2>
+                        <p class="text-body-secondary mb-0">Manage restaurants and their settings</p>
+                    </div>
+                </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="settings-section">
+                        <h4 class="mb-4">
+                            <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                            Restaurant Management Tools
+                            <span class="badge bg-warning ms-2">{{ total_restaurants }}</span>
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="list-outline" class="me-2"></ion-icon>
+                                            All Restaurants
+                                        </h5>
+                                        <p class="card-text">View and manage all registered restaurants.</p>
+                                        <button class="btn btn-outline-primary" onclick="showRestaurantList()">
+                                            <ion-icon name="list-outline" class="me-1"></ion-icon>
+                                            View Restaurants
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="add-outline" class="me-2"></ion-icon>
+                                            Add Restaurant
+                                        </h5>
+                                        <p class="card-text">Register a new restaurant to the platform.</p>
+                                        <button class="btn btn-outline-success" onclick="showAddRestaurantModal()">
+                                            <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                            Add Restaurant
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="analytics-outline" class="me-2"></ion-icon>
+                                            Restaurant Analytics
+                                        </h5>
+                                        <p class="card-text">View restaurant performance and statistics.</p>
+                                        <button class="btn btn-outline-info" onclick="showRestaurantAnalytics()">
+                                            <ion-icon name="bar-chart-outline" class="me-1"></ion-icon>
+                                            View Analytics
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                    <strong>Restaurant Management Features:</strong> 
+                                    Manage restaurant registrations, edit restaurant details, 
+                                    toggle restaurant status, and view restaurant performance metrics.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        `;
+    }
+    
+    function getOrderManagementContent() {
+        return `
+            <div id="orders-section" class="admin-section">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2 class="fw-bold mb-0">Order Management</h2>
+                        <p class="text-body-secondary mb-0">Manage all orders and their status</p>
+                    </div>
+                </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="settings-section">
+                        <h4 class="mb-4">
+                            <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                            Order Management Tools
+                            <span class="badge bg-primary ms-2">{{ recent_orders|length }}</span>
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="list-outline" class="me-2"></ion-icon>
+                                            Order List
+                                        </h5>
+                                        <p class="card-text">View and manage all orders with advanced filtering and search.</p>
+                                        <button class="btn btn-outline-primary" onclick="showOrderList()">
+                                            <ion-icon name="list-outline" class="me-1"></ion-icon>
+                                            View Orders
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="analytics-outline" class="me-2"></ion-icon>
+                                            Order Analytics
+                                        </h5>
+                                        <p class="card-text">View order statistics, revenue reports, and performance metrics.</p>
+                                        <button class="btn btn-outline-primary" onclick="showOrderAnalytics()">
+                                            <ion-icon name="bar-chart-outline" class="me-1"></ion-icon>
+                                            View Analytics
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                    <strong>Order Management Features:</strong> 
+                                    View orders, update status, edit details, and manage order lifecycle. 
+                                    All order operations are available through the action buttons in the orders table.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        `;
+    }
+    
+    function getMealManagementContent() {
+        return `
+            <div id="meals-section" class="admin-section">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2 class="fw-bold mb-0">Meal Management</h2>
+                        <p class="text-body-secondary mb-0">Manage meals across all restaurants</p>
+                    </div>
+                </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="settings-section">
+                        <h4 class="mb-4">
+                            <ion-icon name="fast-food-outline" class="me-2"></ion-icon>
+                            Meal Management Tools
+                            <span class="badge bg-secondary ms-2">0</span>
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="list-outline" class="me-2"></ion-icon>
+                                            All Meals
+                                        </h5>
+                                        <p class="card-text">View and manage all meals from all restaurants.</p>
+                                        <button class="btn btn-outline-primary" onclick="showMealList()">
+                                            <ion-icon name="list-outline" class="me-1"></ion-icon>
+                                            View Meals
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="add-outline" class="me-2"></ion-icon>
+                                            Add Meal
+                                        </h5>
+                                        <p class="card-text">Add a new meal to any restaurant.</p>
+                                        <button class="btn btn-outline-success" onclick="showAddMealModal()">
+                                            <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                            Add Meal
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                                            By Restaurant
+                                        </h5>
+                                        <p class="card-text">Manage meals by specific restaurant.</p>
+                                        <button class="btn btn-outline-info" onclick="showMealsByRestaurant()">
+                                            <ion-icon name="restaurant-outline" class="me-1"></ion-icon>
+                                            By Restaurant
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="analytics-outline" class="me-2"></ion-icon>
+                                            Meal Analytics
+                                        </h5>
+                                        <p class="card-text">View meal performance and popularity.</p>
+                                        <button class="btn btn-outline-warning" onclick="showMealAnalytics()">
+                                            <ion-icon name="bar-chart-outline" class="me-1"></ion-icon>
+                                            Analytics
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                    <strong>Meal Management Features:</strong> 
+                                    Manage meals across all restaurants, edit meal details, 
+                                    toggle availability, and view meal performance metrics.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        `;
+    }
+    
+    function getAnalyticsContent() {
+        return `
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-0">Analytics</h2>
+                    <p class="text-body-secondary mb-0">Platform analytics and insights</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <ion-icon name="bar-chart-outline" class="me-2"></ion-icon>
+                        Analytics dashboard coming soon! Charts and detailed statistics will be available here.
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function getSettingsContent() {
+        return `
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-0">Platform Settings</h2>
+                    <p class="text-body-secondary mb-0">Configure platform-wide settings</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="settings-section">
+                        <h4 class="mb-4">
+                            <ion-icon name="cog-outline" class="me-2"></ion-icon>
+                            Quick Settings
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                            Site Information
+                                        </h5>
+                                        <p class="card-text">Configure site name, description, logo, and basic information.</p>
+                                        <a href="/admin-api/settings/" class="btn btn-outline-primary">
+                                            <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                            Manage Site Info
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="call-outline" class="me-2"></ion-icon>
+                                            Contact & Support
+                                        </h5>
+                                        <p class="card-text">Set up contact information and support details.</p>
+                                        <a href="/admin-api/settings/" class="btn btn-outline-primary">
+                                            <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                            Manage Contact
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="cash-outline" class="me-2"></ion-icon>
+                                            Pricing & Fees
+                                        </h5>
+                                        <p class="card-text">Configure delivery fees, tax rates, and pricing settings.</p>
+                                        <a href="/admin-api/settings/" class="btn btn-outline-primary">
+                                            <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                            Manage Pricing
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <ion-icon name="toggle-outline" class="me-2"></ion-icon>
+                                            Feature Toggles
+                                        </h5>
+                                        <p class="card-text">Enable/disable platform features and maintenance mode.</p>
+                                        <a href="/admin-api/settings/" class="btn btn-outline-primary">
+                                            <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                            Manage Features
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                    <strong>Full Settings Panel:</strong> 
+                                    <a href="/admin-api/settings/" class="alert-link">Click here to access the complete platform settings panel</a> 
+                                    with all configuration options including SEO, social media, and advanced settings.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // User Management Event Listeners
+    function addUserManagementEventListeners() {
+        // Edit User buttons
+        const editUserBtns = document.querySelectorAll('.edit-user-btn');
+        editUserBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+                showUserEditModal(userId, userName);
+            });
+        });
+        
+        // Toggle User Status buttons
+        const toggleUserStatusBtns = document.querySelectorAll('.toggle-user-status-btn');
+        toggleUserStatusBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+                const isActive = this.getAttribute('data-is-active') === 'true';
+                toggleUserStatus(userId, userName, isActive);
+            });
+        });
+        
+        // Delete User buttons
+        const deleteUserBtns = document.querySelectorAll('.delete-user-btn');
+        deleteUserBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+                deleteUser(userId, userName);
+            });
+        });
+        
+        // Search and filter functionality
+        const userSearchInput = document.getElementById('userSearchInput');
+        if (userSearchInput) {
+            userSearchInput.addEventListener('input', searchUsers);
+        }
+        
+        const userRoleFilter = document.getElementById('userRoleFilter');
+        if (userRoleFilter) {
+            userRoleFilter.addEventListener('change', filterUsers);
+        }
+        
+        const userStatusFilter = document.getElementById('userStatusFilter');
+        if (userStatusFilter) {
+            userStatusFilter.addEventListener('change', filterUsers);
+        }
+        
+        // Select all checkbox
+        const selectAllUsers = document.getElementById('selectAllUsers');
+        if (selectAllUsers) {
+            selectAllUsers.addEventListener('change', toggleSelectAll);
+        }
+        
+        console.log('✅ User management event listeners added');
+    }
+    
+    function addRestaurantManagementEventListeners() {
+        console.log('🔗 Adding restaurant management event listeners...');
+        
+        // Add event listeners for restaurant management
+        const searchInput = document.getElementById('restaurantSearch');
+        const statusFilter = document.getElementById('restaurantStatusFilter');
+        const sortSelect = document.getElementById('restaurantSortBy');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', filterRestaurants);
+        }
+        
+        if (statusFilter) {
+            statusFilter.addEventListener('change', filterRestaurants);
+        }
+        
+        if (sortSelect) {
+            sortSelect.addEventListener('change', filterRestaurants);
+        }
+        
+        // Load restaurant data after event listeners are attached
+        console.log('📊 Loading restaurant data...');
+        loadRestaurantList();
+        
+        console.log('✅ Restaurant management event listeners added');
+    }
+    
+    function addOrderManagementEventListeners() {
+        console.log('🔗 Adding order management event listeners...');
+        
+        // Add event listeners for order management
+        const editButtons = document.querySelectorAll('.edit-order-btn');
+        const statusButtons = document.querySelectorAll('.update-order-status-btn');
+        const deleteButtons = document.querySelectorAll('.delete-order-btn');
+        
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                showOrderEditModal(orderId);
+            });
+        });
+        
+        statusButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                showOrderStatusModal(orderId);
+            });
+        });
+        
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                deleteOrder(orderId);
+            });
+        });
+        
+        console.log('✅ Order management event listeners added');
+    }
+    
+    function addDashboardEventListeners() {
+        console.log('🔗 Adding dashboard event listeners...');
+        
+        // Add event listeners for dashboard quick actions
+        const quickActionButtons = document.querySelectorAll('.quick-action-btn');
+        const dashboardSearchInput = document.getElementById('dashboardUserSearch');
+        const dashboardRoleFilter = document.getElementById('dashboardRoleFilter');
+        const dashboardStatusFilter = document.getElementById('dashboardStatusFilter');
+        
+        quickActionButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const section = this.getAttribute('data-section');
+                if (section) {
+                    showAdminSection(section);
+                }
+            });
+        });
+        
+        if (dashboardSearchInput) {
+            dashboardSearchInput.addEventListener('input', searchDashboardUsers);
+        }
+        
+        if (dashboardRoleFilter) {
+            dashboardRoleFilter.addEventListener('change', filterDashboardUsers);
+        }
+        
+        if (dashboardStatusFilter) {
+            dashboardStatusFilter.addEventListener('change', filterDashboardUsers);
+        }
+        
+        console.log('✅ Dashboard event listeners added');
+    }
+
+    // Platform Settings Functions
+    function loadPlatformSettings() {
+        fetch('/admin-api/settings/get/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const settings = data.settings;
+                
+                // Populate form fields
+                document.getElementById('siteName').value = settings.site_name || '';
+                document.getElementById('siteDescription').value = settings.site_description || '';
+                document.getElementById('contactEmail').value = settings.contact_email || '';
+                document.getElementById('supportPhone').value = settings.support_phone || '';
+                document.getElementById('supportEmail').value = settings.support_email || '';
+                document.getElementById('defaultDeliveryFee').value = settings.default_delivery_fee || '';
+                document.getElementById('freeDeliveryThreshold').value = settings.free_delivery_threshold || '';
+                
+                showNotification('Platform settings loaded successfully!', 'success');
+            } else {
+                showNotification('Error loading settings: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load platform settings', 'error');
+        });
+    }
+    
+    function savePlatformSettings() {
+        const formData = {
+            site_name: document.getElementById('siteName').value,
+            site_description: document.getElementById('siteDescription').value,
+            contact_email: document.getElementById('contactEmail').value,
+            support_phone: document.getElementById('supportPhone').value,
+            support_email: document.getElementById('supportEmail').value,
+            default_delivery_fee: parseFloat(document.getElementById('defaultDeliveryFee').value) || 0,
+            free_delivery_threshold: parseFloat(document.getElementById('freeDeliveryThreshold').value) || 0
+        };
+        
+        fetch('/admin-api/settings/update/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Platform settings saved successfully!', 'success');
+                // Reload the page to reflect changes
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification('Error saving settings: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to save platform settings', 'error');
+        });
+    }
+
+    // Enhanced User Management Functions
+    function showAddUserModal() {
+        const modalHtml = `
+            <div class="modal fade" id="addUserModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <ion-icon name="person-add-outline" class="me-2"></ion-icon>
+                                Add New User
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addUserForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Username *</label>
+                                        <input type="text" class="form-control" id="addUsername" name="username" placeholder="Enter username" required>
+                                        <div class="form-text">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Email Address *</label>
+                                        <input type="email" class="form-control" id="addEmail" name="email" placeholder="Enter email address" required>
+                                        <div class="form-text">Required. Enter a valid email address.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">First Name</label>
+                                        <input type="text" class="form-control" id="addFirstName" name="first_name" placeholder="Enter first name">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Last Name</label>
+                                        <input type="text" class="form-control" id="addLastName" name="last_name" placeholder="Enter last name">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Password *</label>
+                                        <input type="password" class="form-control" id="addPassword1" name="password1" placeholder="Create password" required>
+                                        <div class="form-text">Your password must contain at least 8 characters.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Confirm Password *</label>
+                                        <input type="password" class="form-control" id="addPassword2" name="password2" placeholder="Confirm password" required>
+                                        <div class="form-text">Enter the same password as before, for verification.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">User Role *</label>
+                                        <select class="form-select" id="addUserRole" name="role" required>
+                                            <option value="">Select a role</option>
+                                            <option value="customer">Customer</option>
+                                            <option value="owner">Restaurant Owner</option>
+                                            <option value="delivery">Delivery Person</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                        <div class="form-text">Select the user's role on the platform.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Account Status</label>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" id="addUserActive" name="is_active" checked>
+                                            <label class="form-check-label" for="addUserActive">
+                                                Active Account
+                                            </label>
+                                        </div>
+                                        <div class="form-text">Uncheck to create an inactive account.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                    <strong>Note:</strong> The user will be able to log in immediately with the provided credentials. 
+                                    Make sure to share the login details with the user securely.
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="saveNewUser()">
+                                <ion-icon name="save-outline" class="me-1"></ion-icon>
+                                Create User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('addUserModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
+        modal.show();
+    }
+    
+    function saveNewUser() {
+        // Get form data
+        const formData = {
+            username: document.getElementById('addUsername').value,
+            email: document.getElementById('addEmail').value,
+            first_name: document.getElementById('addFirstName').value,
+            last_name: document.getElementById('addLastName').value,
+            password1: document.getElementById('addPassword1').value,
+            password2: document.getElementById('addPassword2').value,
+            role: document.getElementById('addUserRole').value,
+            is_active: document.getElementById('addUserActive').checked
+        };
+        
+        // Basic validation
+        if (!formData.username || !formData.email || !formData.password1 || !formData.password2 || !formData.role) {
+            showNotification('Please fill in all required fields', 'warning');
+            return;
+        }
+        
+        if (formData.password1 !== formData.password2) {
+            showNotification('Passwords do not match', 'error');
+            return;
+        }
+        
+        if (formData.password1.length < 8) {
+            showNotification('Password must be at least 8 characters long', 'error');
+            return;
+        }
+        
+        // Send request to create user
+        fetch('/admin-api/users/create/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('User created successfully!', 'success');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+                modal.hide();
+                // Refresh the page to show the new user
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification('Error creating user: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to create user', 'error');
+        });
+    }
+    
+    function exportUsers() {
+        showNotification('Export Users functionality coming soon!', 'info');
+    }
+    
+    function searchUsers() {
+        const searchTerm = document.getElementById('userSearchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTable tbody tr');
+        
+        rows.forEach(row => {
+            const username = row.querySelector('h6').textContent.toLowerCase();
+            const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            const fullName = row.querySelector('small').textContent.toLowerCase();
+            
+            if (username.includes(searchTerm) || email.includes(searchTerm) || fullName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    function toggleSelectAll() {
+        const selectAll = document.getElementById('selectAllUsers');
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAll.checked;
+        });
+        
+        updateBulkActions();
+    }
+    
+    function updateBulkActions() {
+        const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        if (checkboxes.length > 0) {
+            bulkActions.style.display = 'block';
+            selectedCount.textContent = checkboxes.length;
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+    
+    function bulkToggleStatus() {
+        const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+        if (checkboxes.length === 0) {
+            showNotification('Please select users first', 'warning');
+            return;
+        }
+        
+        const userIds = Array.from(checkboxes).map(cb => cb.value);
+        const action = confirm(`Toggle status for ${userIds.length} selected users?`);
+        
+        if (action) {
+            showNotification(`Bulk toggle status for ${userIds.length} users - Coming soon!`, 'info');
+        }
+    }
+    
+    function bulkDeleteUsers() {
+        const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+        if (checkboxes.length === 0) {
+            showNotification('Please select users first', 'warning');
+            return;
+        }
+        
+        const userIds = Array.from(checkboxes).map(cb => cb.value);
+        const action = confirm(`Delete ${userIds.length} selected users? This action cannot be undone!`);
+        
+        if (action) {
+            showNotification(`Bulk delete for ${userIds.length} users - Coming soon!`, 'info');
+        }
+    }
+    
+    // Add event listeners for checkboxes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('user-checkbox')) {
+            updateBulkActions();
+        }
+    });
+    
+    // Add event listener for search input
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'userSearchInput') {
+            searchUsers();
+        }
+    });
+    
+    // Add event listeners for filter dropdowns
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'userRoleFilter' || e.target.id === 'userStatusFilter') {
+            filterUsers();
+        }
+        if (e.target.id === 'dashboardRoleFilter' || e.target.id === 'dashboardStatusFilter') {
+            filterDashboardUsers();
+        }
+    });
+    
+    // Add event listener for dashboard search input
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'dashboardUserSearch') {
+            searchDashboardUsers();
+        }
+    });
+    
+    function filterUsers() {
+        const roleFilter = document.getElementById('userRoleFilter').value;
+        const statusFilter = document.getElementById('userStatusFilter').value;
+        const rows = document.querySelectorAll('#usersTable tbody tr');
+        
+        rows.forEach(row => {
+            const userRole = row.getAttribute('data-role');
+            const userStatus = row.getAttribute('data-status');
+            
+            let showRow = true;
+            
+            if (roleFilter && userRole !== roleFilter) {
+                showRow = false;
+            }
+            
+            if (statusFilter && userStatus !== statusFilter) {
+                showRow = false;
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+    
+    // Dashboard User Management Filter Functions
+    function searchDashboardUsers() {
+        const searchTerm = document.getElementById('dashboardUserSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('.settings-section .user-table tbody tr');
+        
+        rows.forEach(row => {
+            const username = row.querySelector('h6').textContent.toLowerCase();
+            const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const fullName = row.querySelector('small').textContent.toLowerCase();
+            
+            if (username.includes(searchTerm) || email.includes(searchTerm) || fullName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    function filterDashboardUsers() {
+        const roleFilter = document.getElementById('dashboardRoleFilter').value;
+        const statusFilter = document.getElementById('dashboardStatusFilter').value;
+        const rows = document.querySelectorAll('.settings-section .user-table tbody tr');
+        
+        rows.forEach(row => {
+            const userRole = row.getAttribute('data-role');
+            const userStatus = row.getAttribute('data-status');
+            
+            let showRow = true;
+            
+            if (roleFilter && userRole !== roleFilter) {
+                showRow = false;
+            }
+            
+            if (statusFilter && userStatus !== statusFilter) {
+                showRow = false;
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+    
+    // Order Management Functions
+    function showOrderList() {
+        showNotification('Order List functionality coming soon!', 'info');
+    }
+    
+    function showOrderAnalytics() {
+        showNotification('Order Analytics functionality coming soon!', 'info');
+    }
+    
+    function showAddOrderModal() {
+        showNotification('Add Order functionality coming soon!', 'info');
+    }
+    
+    function exportOrders() {
+        showNotification('Export Orders functionality coming soon!', 'info');
+    }
+    
+    function refreshOrders() {
+        showNotification('Refreshing orders...', 'info');
+        // Reload the page to refresh orders
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
+    }
+    
+    function searchOrders() {
+        const searchTerm = document.getElementById('orderSearchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#ordersTable tbody tr');
+        
+        rows.forEach(row => {
+            const orderId = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const customer = row.querySelector('h6').textContent.toLowerCase();
+            const restaurant = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+            
+            if (orderId.includes(searchTerm) || customer.includes(searchTerm) || restaurant.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    function toggleSelectAllOrders() {
+        const selectAll = document.getElementById('selectAllOrders');
+        const checkboxes = document.querySelectorAll('.order-checkbox');
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAll.checked;
+        });
+        
+        updateOrderBulkActions();
+    }
+    
+    function updateOrderBulkActions() {
+        const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+        const bulkActions = document.getElementById('orderBulkActions');
+        const selectedCount = document.getElementById('selectedOrderCount');
+        
+        if (checkboxes.length > 0) {
+            bulkActions.style.display = 'block';
+            selectedCount.textContent = checkboxes.length;
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+    
+    function bulkUpdateStatus() {
+        const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+        if (checkboxes.length === 0) {
+            showNotification('Please select orders first', 'warning');
+            return;
+        }
+        
+        const orderIds = Array.from(checkboxes).map(cb => cb.value);
+        const newStatus = prompt(`Update status for ${orderIds.length} selected orders:\n\nEnter new status (pending, confirmed, preparing, ready, delivered, cancelled):`);
+        
+        if (newStatus && ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'].includes(newStatus.toLowerCase())) {
+            showNotification(`Bulk updating ${orderIds.length} orders to ${newStatus} - Coming soon!`, 'info');
+        }
+    }
+    
+    function bulkExportOrders() {
+        const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+        if (checkboxes.length === 0) {
+            showNotification('Please select orders first', 'warning');
+            return;
+        }
+        
+        const orderIds = Array.from(checkboxes).map(cb => cb.value);
+        showNotification(`Exporting ${orderIds.length} selected orders - Coming soon!`, 'info');
+    }
+    
+    function bulkDeleteOrders() {
+        const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+        if (checkboxes.length === 0) {
+            showNotification('Please select orders first', 'warning');
+            return;
+        }
+        
+        const orderIds = Array.from(checkboxes).map(cb => cb.value);
+        const action = confirm(`Delete ${orderIds.length} selected orders? This action cannot be undone!`);
+        
+        if (action) {
+            showNotification(`Bulk delete for ${orderIds.length} orders - Coming soon!`, 'info');
+        }
+    }
+    
+    // Add event listeners for order checkboxes
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('order-checkbox')) {
+            updateOrderBulkActions();
+        }
+    });
+    
+    // Add event listener for order search input
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'orderSearchInput') {
+            searchOrders();
+        }
+    });
+    
+    // Add event listeners for order filter dropdowns
+    document.addEventListener('change', function(e) {
+        if (e.target.id === 'orderStatusFilter' || e.target.id === 'orderDateFilter') {
+            filterOrders();
+        }
+    });
+    
+    function filterOrders() {
+        const statusFilter = document.getElementById('orderStatusFilter').value;
+        const dateFilter = document.getElementById('orderDateFilter').value;
+        const rows = document.querySelectorAll('#ordersTable tbody tr');
+        
+        rows.forEach(row => {
+            const orderStatus = row.getAttribute('data-status');
+            const orderDate = row.getAttribute('data-date');
+            
+            let showRow = true;
+            
+            if (statusFilter && orderStatus !== statusFilter) {
+                showRow = false;
+            }
+            
+            if (dateFilter) {
+                const today = new Date();
+                const orderDateObj = new Date(orderDate);
+                
+                switch(dateFilter) {
+                    case 'today':
+                        if (orderDateObj.toDateString() !== today.toDateString()) {
+                            showRow = false;
+                        }
+                        break;
+                    case 'week':
+                        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        if (orderDateObj < weekAgo) {
+                            showRow = false;
+                        }
+                        break;
+                    case 'month':
+                        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                        if (orderDateObj < monthAgo) {
+                            showRow = false;
+                        }
+                        break;
+                }
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+    
+    // Restaurant Management Functions
+    function showRestaurantList() {
+        // Create restaurant list content
+        const content = `
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="fw-bold mb-0">All Restaurants</h3>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" onclick="refreshRestaurantList()">
+                                <ion-icon name="refresh-outline" class="me-1"></ion-icon>
+                                Refresh
+                            </button>
+                            <button class="btn btn-success" onclick="showAddRestaurantModal()">
+                                <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                Add Restaurant
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <ion-icon name="search-outline"></ion-icon>
+                        </span>
+                        <input type="text" class="form-control" id="restaurantSearch" placeholder="Search restaurants...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="restaurantStatusFilter">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="restaurantSortBy">
+                        <option value="name">Sort by Name</option>
+                        <option value="created_at">Sort by Date</option>
+                        <option value="orders_count">Sort by Orders</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="restaurantsTable">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAllRestaurants" onchange="toggleSelectAllRestaurants()">
+                                    </th>
+                                    <th>Restaurant</th>
+                                    <th>Owner</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Orders</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="restaurantsTableBody">
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2 text-muted">Loading restaurants...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-3" id="restaurantBulkActions" style="display: none;">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="text-muted">Bulk Actions:</span>
+                                <button class="btn btn-outline-danger btn-sm" onclick="bulkDeleteRestaurants()">
+                                    <ion-icon name="trash-outline" class="me-1"></ion-icon>
+                                    Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Create and display the content directly
+        const mainContent = document.querySelector('.admin-content .container-fluid');
+        if (mainContent) {
+            mainContent.innerHTML = content;
+            
+            // Load restaurant data after content is created
+            setTimeout(() => {
+                loadRestaurantList();
+                addRestaurantManagementEventListeners();
+            }, 100);
+        } else {
+            console.error('❌ Main content container not found!');
+        }
+    }
+    
+    function showAddRestaurantModal() {
+        // Create add restaurant modal
+        const modal = `
+            <div class="modal fade" id="addRestaurantModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <ion-icon name="add-outline" class="me-2"></ion-icon>
+                                Add New Restaurant
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addRestaurantForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Restaurant Name</label>
+                                        <input type="text" class="form-control" id="restaurantName" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Owner Email</label>
+                                        <input type="email" class="form-control" id="ownerEmail" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Phone Number</label>
+                                        <input type="tel" class="form-control" id="restaurantPhone">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Location</label>
+                                        <input type="text" class="form-control" id="restaurantLocation" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Description</label>
+                                    <textarea class="form-control" id="restaurantDescription" rows="3"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Delivery Time</label>
+                                        <input type="text" class="form-control" id="deliveryTime" placeholder="e.g., 30-45 minutes">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Opening Hours</label>
+                                        <input type="text" class="form-control" id="openingHours" placeholder="e.g., Mon-Sun: 9:00 AM - 10:00 PM">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-success" onclick="saveNewRestaurant()">
+                                <ion-icon name="save-outline" class="me-1"></ion-icon>
+                                Create Restaurant
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('addRestaurantModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modal);
+        
+        // Show modal
+        const modalElement = new bootstrap.Modal(document.getElementById('addRestaurantModal'));
+        modalElement.show();
+    }
+    
+    function showRestaurantAnalytics() {
+        // Create restaurant analytics content
+        const content = `
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h3 class="fw-bold mb-0">Restaurant Analytics</h3>
+                    <p class="text-body-secondary mb-0">Performance metrics and insights for all restaurants</p>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0" id="totalRestaurantsCount">-</h4>
+                                    <p class="mb-0">Total Restaurants</p>
+                                </div>
+                                <ion-icon name="restaurant-outline" style="font-size: 2rem;"></ion-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0" id="activeRestaurantsCount">-</h4>
+                                    <p class="mb-0">Active Restaurants</p>
+                                </div>
+                                <ion-icon name="checkmark-circle-outline" style="font-size: 2rem;"></ion-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0" id="totalOrdersCount">-</h4>
+                                    <p class="mb-0">Total Orders</p>
+                                </div>
+                                <ion-icon name="receipt-outline" style="font-size: 2rem;"></ion-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="mb-0" id="avgOrderValue">-</h4>
+                                    <p class="mb-0">Avg Order Value</p>
+                                </div>
+                                <ion-icon name="cash-outline" style="font-size: 2rem;"></ion-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Top Performing Restaurants</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="topRestaurantsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Restaurant</th>
+                                            <th>Orders</th>
+                                            <th>Revenue</th>
+                                            <th>Rating</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="topRestaurantsTableBody">
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Restaurant Status Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="restaurantStatusChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Create and display the content directly
+        const mainContent = document.querySelector('.admin-content .container-fluid');
+        if (mainContent) {
+            mainContent.innerHTML = content;
+            
+            // Load analytics data after content is created
+            setTimeout(() => {
+                loadRestaurantAnalytics();
+            }, 100);
+        } else {
+            console.error('❌ Main content container not found!');
+        }
+    }
+    
+    // Supporting functions for restaurant management
+    function loadRestaurantList() {
+        console.log('🔄 Loading restaurant list...');
+        
+        // Check if the table body exists
+        const tbody = document.getElementById('restaurantsTableBody');
+        if (!tbody) {
+            console.error('❌ Restaurant table body not found!');
+            showNotification('Restaurant table not ready. Please try again.', 'error');
+            return;
+        }
+        
+        fetch('/admin-api/restaurants/list/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('📊 Restaurant data received:', data);
+            if (data.success) {
+                allRestaurants = data.restaurants; // Store globally for filtering
+                displayRestaurantList(data.restaurants);
+                console.log('✅ Restaurant list displayed successfully');
+            } else {
+                console.error('❌ Error from server:', data.error);
+                showNotification('Error loading restaurants: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Network error:', error);
+            showNotification('Error loading restaurants: ' + error.message, 'error');
+        });
+    }
+    
+    function displayRestaurantList(restaurants) {
+        const tbody = document.getElementById('restaurantsTableBody');
+        if (restaurants.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <ion-icon name="restaurant-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+                        <p class="mt-2 text-muted">No restaurants found</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = restaurants.map(restaurant => `
+            <tr data-restaurant-id="${restaurant.id}" data-restaurant-name="${restaurant.name}" data-restaurant-status="${restaurant.is_active ? 'active' : 'inactive'}">
+                <td>
+                    <input type="checkbox" class="restaurant-checkbox" value="${restaurant.id}">
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            ${restaurant.logo ? 
+                                `<img src="${restaurant.logo}" alt="${restaurant.name}" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">` :
+                                `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <ion-icon name="restaurant-outline" style="font-size: 1.5rem; color: #ccc;"></ion-icon>
+                                </div>`
+                            }
+                        </div>
+                        <div>
+                            <div class="fw-bold">
+                                <a href="/restaurants/detail/${restaurant.id}/" class="text-decoration-none text-primary" target="_blank" title="View Restaurant Details">
+                                    ${restaurant.name}
+                                    <ion-icon name="open-outline" class="ms-1" style="font-size: 14px;"></ion-icon>
+                                </a>
+                            </div>
+                            <small class="text-muted">${restaurant.description || 'No description'}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <div class="fw-medium">${restaurant.owner_name || 'N/A'}</div>
+                        <small class="text-muted">${restaurant.owner_email || ''}</small>
+                    </div>
+                </td>
+                <td>
+                    <span class="text-truncate d-inline-block" style="max-width: 150px;" title="${restaurant.location}">
+                        ${restaurant.location || 'N/A'}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-success">
+                        Active
+                    </span>
+                </td>
+                <td>
+                    <span class="fw-bold">${restaurant.orders_count || 0}</span>
+                </td>
+                <td>
+                    <small class="text-muted">${new Date(restaurant.created_at).toLocaleDateString()}</small>
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="showRestaurantEditModal(${restaurant.id}, '${restaurant.name}')" title="Edit">
+                            <ion-icon name="create-outline"></ion-icon>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteRestaurant(${restaurant.id}, '${restaurant.name}')" title="Delete">
+                            <ion-icon name="trash-outline"></ion-icon>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        
+        // Add event listeners for checkboxes
+        document.querySelectorAll('.restaurant-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateRestaurantBulkActions);
+        });
+    }
+    
+    function loadRestaurantAnalytics() {
+        fetch('/admin-api/restaurants/analytics/', {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayRestaurantAnalytics(data.analytics);
+            } else {
+                showNotification('Error loading analytics: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error loading analytics', 'error');
+        });
+    }
+    
+    function displayRestaurantAnalytics(analytics) {
+        // Update stats cards
+        document.getElementById('totalRestaurantsCount').textContent = analytics.total_restaurants || 0;
+        document.getElementById('activeRestaurantsCount').textContent = analytics.active_restaurants || 0;
+        document.getElementById('totalOrdersCount').textContent = analytics.total_orders || 0;
+        document.getElementById('avgOrderValue').textContent = analytics.avg_order_value ? '$' + analytics.avg_order_value.toFixed(2) : '$0.00';
+        
+        // Update top restaurants table
+        const tbody = document.getElementById('topRestaurantsTableBody');
+        if (analytics.top_restaurants && analytics.top_restaurants.length > 0) {
+            tbody.innerHTML = analytics.top_restaurants.map(restaurant => `
+                <tr>
+                    <td>
+                        <div class="fw-bold">
+                            <a href="/restaurants/detail/${restaurant.id}/" class="text-decoration-none text-primary" target="_blank" title="View Restaurant Details">
+                                ${restaurant.name}
+                                <ion-icon name="open-outline" class="ms-1" style="font-size: 14px;"></ion-icon>
+                            </a>
+                        </div>
+                        <small class="text-muted">${restaurant.location}</small>
+                    </td>
+                    <td><span class="badge bg-primary">${restaurant.orders_count}</span></td>
+                    <td><span class="fw-bold">$${restaurant.revenue || 0}</span></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="me-1">${restaurant.rating || 0}</span>
+                            <ion-icon name="star" style="color: #ffc107;"></ion-icon>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-4">
+                        <p class="text-muted">No data available</p>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    function saveNewRestaurant() {
+        const formData = {
+            name: document.getElementById('restaurantName').value,
+            owner_email: document.getElementById('ownerEmail').value,
+            phone: document.getElementById('restaurantPhone').value,
+            location: document.getElementById('restaurantLocation').value,
+            description: document.getElementById('restaurantDescription').value,
+            delivery_time: document.getElementById('deliveryTime').value,
+            opening_hours: document.getElementById('openingHours').value
+        };
+        
+        fetch('/admin-api/restaurants/create/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Restaurant created successfully!', 'success');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addRestaurantModal'));
+                modal.hide();
+                // Refresh restaurant list if it's open
+                if (document.getElementById('restaurantsTableBody')) {
+                    loadRestaurantList();
+                }
+            } else {
+                showNotification('Error creating restaurant: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error creating restaurant', 'error');
+        });
+    }
+    
+    function refreshRestaurantList() {
+        loadRestaurantList();
+    }
+    
+    // Store restaurant data globally for filtering
+    let allRestaurants = [];
+    
+    function filterRestaurants() {
+        const searchTerm = document.getElementById('restaurantSearch').value.toLowerCase();
+        const statusFilter = document.getElementById('restaurantStatusFilter').value;
+        const sortBy = document.getElementById('restaurantSortBy').value;
+        
+        let filteredRestaurants = [...allRestaurants];
+        
+        // Filter by search term
+        if (searchTerm) {
+            filteredRestaurants = filteredRestaurants.filter(restaurant => 
+                restaurant.name.toLowerCase().includes(searchTerm) ||
+                restaurant.description.toLowerCase().includes(searchTerm) ||
+                restaurant.location.toLowerCase().includes(searchTerm) ||
+                restaurant.owner_name.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // Filter by status (since all restaurants are active, this filter is mainly for future use)
+        if (statusFilter) {
+            if (statusFilter === 'active') {
+                filteredRestaurants = filteredRestaurants.filter(restaurant => restaurant.is_active);
+            } else if (statusFilter === 'inactive') {
+                filteredRestaurants = filteredRestaurants.filter(restaurant => !restaurant.is_active);
+            }
+        }
+        
+        // Sort restaurants
+        filteredRestaurants.sort((a, b) => {
+            switch (sortBy) {
+                case 'name':
+                    return a.name.localeCompare(b.name);
+                case 'created_at':
+                    return new Date(b.created_at) - new Date(a.created_at);
+                case 'orders_count':
+                    return (b.orders_count || 0) - (a.orders_count || 0);
+                default:
+                    return 0;
+            }
+        });
+        
+        // Display filtered results
+        displayRestaurantList(filteredRestaurants);
+    }
+    
+    function toggleSelectAllRestaurants() {
+        const selectAll = document.getElementById('selectAllRestaurants');
+        const checkboxes = document.querySelectorAll('.restaurant-checkbox');
+        
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectAll.checked;
+        });
+        
+        updateRestaurantBulkActions();
+    }
+    
+    function updateRestaurantBulkActions() {
+        const checkedBoxes = document.querySelectorAll('.restaurant-checkbox:checked');
+        const bulkActions = document.getElementById('restaurantBulkActions');
+        
+        if (checkedBoxes.length > 0) {
+            bulkActions.style.display = 'block';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+    
+    
+    function bulkDeleteRestaurants() {
+        const checkedBoxes = document.querySelectorAll('.restaurant-checkbox:checked');
+        if (checkedBoxes.length === 0) {
+            showNotification('Please select restaurants to delete', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to delete ${checkedBoxes.length} restaurants? This action cannot be undone.`)) {
+            return;
+        }
+        
+        const restaurantIds = Array.from(checkedBoxes).map(cb => cb.value);
+        
+        fetch('/admin-api/restaurants/bulk-delete/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ restaurant_ids: restaurantIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(`${restaurantIds.length} restaurants deleted successfully`, 'success');
+                loadRestaurantList();
+            } else {
+                showNotification('Error deleting restaurants: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error deleting restaurants', 'error');
+        });
+    }
+    
+    function showRestaurantEditModal(restaurantId, restaurantName) {
+        // Fetch restaurant data and show edit modal
+        fetch(`/admin-api/restaurants/${restaurantId}/edit/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showRestaurantEditForm(data.restaurant);
+            } else {
+                showNotification(data.error || 'Failed to load restaurant data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load restaurant data', 'error');
+        });
+    }
+    
+    function showRestaurantEditForm(restaurant) {
+        const modalHtml = `
+            <div class="modal fade" id="restaurantEditModal" tabindex="-1">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <ion-icon name="create-outline" class="me-2"></ion-icon>
+                                Edit Restaurant: ${restaurant.name}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="restaurantEditForm" enctype="multipart/form-data">
+                                <!-- Basic Information -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="fw-bold text-primary mb-3">
+                                            <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                                            Basic Information
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Restaurant Name</label>
+                                        <input type="text" class="form-control" id="editRestaurantName" value="${restaurant.name}" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Location</label>
+                                        <input type="text" class="form-control" id="editRestaurantLocation" value="${restaurant.location || ''}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label fw-bold">Description</label>
+                                        <textarea class="form-control" id="editRestaurantDescription" rows="3" placeholder="Enter restaurant description">${restaurant.description || ''}</textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Logo Section -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="fw-bold text-primary mb-3">
+                                            <ion-icon name="image-outline" class="me-2"></ion-icon>
+                                            Restaurant Logo
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Current Logo</label>
+                                        <div class="border rounded p-3 text-center" style="max-width: 200px;">
+                                            ${restaurant.logo ? 
+                                                `<img src="${restaurant.logo}" alt="Current logo" class="img-fluid rounded" style="max-height: 100px;">
+                                                 <p class="small text-muted mt-2 mb-0">Current Logo</p>` :
+                                                `<div class="text-muted">
+                                                    <ion-icon name="image-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+                                                    <p class="small mt-2 mb-0">No logo uploaded</p>
+                                                 </div>`
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Upload New Logo</label>
+                                        <input type="file" class="form-control" id="editRestaurantLogo" accept="image/*">
+                                        <div class="form-text">Upload a new logo to replace the current one</div>
+                                    </div>
+                                </div>
+
+                                <!-- Hero Section -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="fw-bold text-primary mb-3">
+                                            <ion-icon name="desktop-outline" class="me-2"></ion-icon>
+                                            Hero Section (Meal List Page)
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Current Hero Image</label>
+                                        <div class="border rounded p-3 text-center" style="max-width: 200px;">
+                                            ${restaurant.hero_image ? 
+                                                `<img src="${restaurant.hero_image}" alt="Current hero image" class="img-fluid rounded" style="max-height: 100px;">
+                                                 <p class="small text-muted mt-2 mb-0">Current Hero Image</p>` :
+                                                `<div class="text-muted">
+                                                    <ion-icon name="image-outline" style="font-size: 3rem; color: #ccc;"></ion-icon>
+                                                    <p class="small mt-2 mb-0">No hero image</p>
+                                                 </div>`
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Upload New Hero Image</label>
+                                        <input type="file" class="form-control" id="editRestaurantHeroImage" accept="image/*">
+                                        <div class="form-text">Upload a new hero image for the meal list page</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Hero Title</label>
+                                        <input type="text" class="form-control" id="editRestaurantHeroTitle" value="${restaurant.hero_title || ''}" placeholder="e.g., Delicious Meals">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Hero Description</label>
+                                        <textarea class="form-control" id="editRestaurantHeroDescription" rows="2" placeholder="Enter hero description">${restaurant.hero_description || ''}</textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Contact Information -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="fw-bold text-primary mb-3">
+                                            <ion-icon name="call-outline" class="me-2"></ion-icon>
+                                            Contact Information
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Phone Number</label>
+                                        <input type="text" class="form-control" id="editRestaurantPhone" value="${restaurant.phone_number || ''}" placeholder="Enter phone number">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Email</label>
+                                        <input type="email" class="form-control" id="editRestaurantEmail" value="${restaurant.email || ''}" placeholder="Enter email address">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Delivery Time</label>
+                                        <input type="text" class="form-control" id="editRestaurantDeliveryTime" value="${restaurant.delivery_time || ''}" placeholder="e.g., 30-45 minutes">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Opening Hours</label>
+                                        <input type="text" class="form-control" id="editRestaurantOpeningHours" value="${restaurant.opening_hours || ''}" placeholder="e.g., Mon-Sun: 9:00 AM - 10:00 PM">
+                                    </div>
+                                </div>
+
+                                <!-- Owner Information (Read-only) -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="fw-bold text-primary mb-3">
+                                            <ion-icon name="person-outline" class="me-2"></ion-icon>
+                                            Owner Information
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Owner Name</label>
+                                        <input type="text" class="form-control" value="${restaurant.owner_name || 'N/A'}" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Owner Email</label>
+                                        <input type="email" class="form-control" value="${restaurant.owner_email || 'N/A'}" readonly>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="saveRestaurantEdit(${restaurant.id})">
+                                <ion-icon name="save-outline" class="me-1"></ion-icon>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('restaurantEditModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('restaurantEditModal'));
+        modal.show();
+    }
+    
+    function saveRestaurantEdit(restaurantId) {
+        // Create FormData for file uploads
+        const formData = new FormData();
+        formData.append('name', document.getElementById('editRestaurantName').value);
+        formData.append('location', document.getElementById('editRestaurantLocation').value);
+        formData.append('description', document.getElementById('editRestaurantDescription').value);
+        formData.append('phone_number', document.getElementById('editRestaurantPhone').value);
+        formData.append('email', document.getElementById('editRestaurantEmail').value);
+        formData.append('delivery_time', document.getElementById('editRestaurantDeliveryTime').value);
+        formData.append('opening_hours', document.getElementById('editRestaurantOpeningHours').value);
+        formData.append('hero_title', document.getElementById('editRestaurantHeroTitle').value);
+        formData.append('hero_description', document.getElementById('editRestaurantHeroDescription').value);
+        
+        // Handle file uploads
+        const logoFile = document.getElementById('editRestaurantLogo').files[0];
+        if (logoFile) {
+            formData.append('logo', logoFile);
+        }
+        
+        const heroImageFile = document.getElementById('editRestaurantHeroImage').files[0];
+        if (heroImageFile) {
+            formData.append('hero_image', heroImageFile);
+        }
+        
+        fetch(`/admin-api/restaurants/${restaurantId}/edit/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('restaurantEditModal'));
+                modal.hide();
+                // Refresh the page to show updated data
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.error || 'Failed to update restaurant', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to update restaurant', 'error');
+        });
+    }
+    
+    function deleteRestaurant(restaurantId, restaurantName) {
+        if (confirm(`Are you sure you want to delete restaurant "${restaurantName}"? This action cannot be undone.`)) {
+            fetch(`/admin-api/restaurants/${restaurantId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`Restaurant "${restaurantName}" deleted successfully!`, 'success');
+                    // Refresh restaurant list if it's open
+                    if (document.getElementById('restaurantsTableBody')) {
+                        loadRestaurantList();
+                    }
+                } else {
+                    showNotification('Error deleting restaurant: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Failed to delete restaurant', 'error');
+            });
+        }
+    }
+    
+    // Meal Management Functions
+    function showMealList() {
+        showNotification('Meal List functionality coming soon!', 'info');
+    }
+    
+    function showAddMealModal() {
+        showNotification('Add Meal functionality coming soon!', 'info');
+    }
+    
+    function showMealsByRestaurant() {
+        showNotification('Meals by Restaurant functionality coming soon!', 'info');
+    }
+    
+    function showMealAnalytics() {
+        showNotification('Meal Analytics functionality coming soon!', 'info');
+    }
+    
+    function showMealEditModal(mealId, mealName) {
+        // Fetch meal data and show edit modal
+        fetch(`/admin-api/meals/${mealId}/edit/`, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMealEditForm(data.meal);
+            } else {
+                showNotification(data.error || 'Failed to load meal data', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load meal data', 'error');
+        });
+    }
+    
+    function showMealEditForm(meal) {
+        const modalHtml = `
+            <div class="modal fade" id="mealEditModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Meal: ${meal.name}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="mealEditForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Meal Name</label>
+                                        <input type="text" class="form-control" id="editMealName" value="${meal.name}">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Price ($)</label>
+                                        <input type="number" class="form-control" id="editMealPrice" value="${meal.price}" step="0.01" min="0">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" id="editMealDescription" rows="3">${meal.description || ''}</textarea>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check mt-4">
+                                            <input class="form-check-input" type="checkbox" id="editMealIsAvailable" ${meal.is_available ? 'checked' : ''}>
+                                            <label class="form-check-label">Available for Order</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="saveMealEdit(${meal.id})">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('mealEditModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('mealEditModal'));
+        modal.show();
+    }
+    
+    function saveMealEdit(mealId) {
+        const formData = {
+            name: document.getElementById('editMealName').value,
+            price: parseFloat(document.getElementById('editMealPrice').value),
+            description: document.getElementById('editMealDescription').value,
+            is_available: document.getElementById('editMealIsAvailable').checked
+        };
+        
+        fetch(`/admin-api/meals/${mealId}/edit/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('mealEditModal'));
+                modal.hide();
+                // Refresh the page to show updated data
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showNotification(data.error || 'Failed to update meal', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to update meal', 'error');
+        });
+    }
+    
+    // View Toggle Functions
+    function toggleView(viewType) {
+        const simpleViewBtn = document.getElementById('simpleViewBtn');
+        const comprehensiveViewBtn = document.getElementById('comprehensiveViewBtn');
+        const simpleViewSection = document.getElementById('simple-view-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        
+        if (viewType === 'simple') {
+            // Show simple view
+            simpleViewSection.style.display = 'block';
+            dashboardSection.style.display = 'none';
+            
+            // Update button states
+            simpleViewBtn.classList.remove('btn-outline-primary');
+            simpleViewBtn.classList.add('btn-primary');
+            comprehensiveViewBtn.classList.remove('btn-primary');
+            comprehensiveViewBtn.classList.add('btn-outline-primary');
+            
+            // Update sidebar to show simple navigation
+            updateSidebarForSimpleView();
+            
+        } else {
+            // Show comprehensive view
+            simpleViewSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            
+            // Update button states
+            comprehensiveViewBtn.classList.remove('btn-outline-primary');
+            comprehensiveViewBtn.classList.add('btn-primary');
+            simpleViewBtn.classList.remove('btn-primary');
+            simpleViewBtn.classList.add('btn-outline-primary');
+            
+            // Update sidebar to show comprehensive navigation
+            updateSidebarForComprehensiveView();
+        }
+    }
+    
+    function updateSidebarForSimpleView() {
+        // Hide detailed management sections in sidebar
+        const sidebarLinks = document.querySelectorAll('.admin-nav-link');
+        sidebarLinks.forEach(link => {
+            const section = link.getAttribute('data-section');
+            if (['users', 'orders', 'restaurants', 'meals', 'analytics', 'settings'].includes(section)) {
+                link.style.display = 'none';
+            }
+        });
+        
+        // Show only overview
+        const overviewLink = document.querySelector('[data-section="dashboard"]');
+        if (overviewLink) {
+            overviewLink.classList.add('active');
+        }
+    }
+    
+    function updateSidebarForComprehensiveView() {
+        // Show all sidebar links
+        const sidebarLinks = document.querySelectorAll('.admin-nav-link');
+        sidebarLinks.forEach(link => {
+            link.style.display = 'block';
+        });
+    }
+    
+    // Section management function
+    function showSection(sectionName) {
+        console.log('🔄 Quick action switching to section:', sectionName);
+        
+        // Use the main showAdminSection function for consistency
+        showAdminSection(sectionName);
+        
+        // If showing a section other than dashboard, switch to comprehensive view
+        if (sectionName !== 'dashboard') {
+            toggleView('comprehensive');
+        }
+    }
+    
+    // Initialize with appropriate view
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if simple view is requested
+        {% if is_simple_view %}
+        toggleView('simple');
+        {% else %}
+        toggleView('comprehensive');
+        {% endif %}
+    });
 </script>
 {% endblock %}

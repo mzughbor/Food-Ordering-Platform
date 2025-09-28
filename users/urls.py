@@ -14,4 +14,5 @@ urlpatterns = [
     path('business-registration/', views.business_registration_view, name='business_registration'),
     path('validate-email/', views.validate_email, name='validate_email'),
     path('validate-restaurant-name/', views.validate_restaurant_name, name='validate_restaurant_name'),
+    path('restaurants/', views.all_restaurants_view, name='all_restaurants'),
 ]
