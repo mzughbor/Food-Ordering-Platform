@@ -336,6 +336,7 @@
                 this.sections = [];
                 this.navbarHeight = 0;
                 this.debug = false; // Set to true for debugging
+                this.deviceType = this.getDeviceType();
                 
                 this.init();
             }
@@ -367,6 +368,13 @@
 
             calculateNavbarHeight() {
                 this.navbarHeight = this.navbar.offsetHeight;
+            }
+
+            getDeviceType() {
+                const width = window.innerWidth;
+                if (width <= 768) return 'mobile';
+                if (width <= 1024) return 'tablet';
+                return 'desktop';
             }
 
             setInitialContentPadding() {
@@ -432,20 +440,49 @@
             handleScroll() {
                 const currentScrollY = window.scrollY;
                 const scrollDelta = currentScrollY - this.lastScrollY;
+                const isMobile = window.innerWidth <= 768;
+                const isTablet = window.innerWidth > 768 && window.innerWidth <= 1024;
                 
                 // Determine scroll direction
                 this.scrollDirection = scrollDelta > 0 ? 'down' : 'up';
                 
-                // Only hide/show navbar after passing the threshold
-                if (currentScrollY > this.scrollThreshold) {
-                    if (this.scrollDirection === 'down' && !this.isHidden) {
-                        this.hideNavbar();
-                    } else if (this.scrollDirection === 'up' && this.isHidden) {
+                // Mobile: More sensitive behavior
+                if (isMobile) {
+                    if (currentScrollY > this.scrollThreshold) {
+                        if (this.scrollDirection === 'down' && !this.isHidden) {
+                            this.hideNavbar();
+                        } else if (this.scrollDirection === 'up' && this.isHidden) {
+                            this.showNavbar();
+                        }
+                    } else if (this.isHidden) {
+                        // Always show navbar when above threshold on mobile
                         this.showNavbar();
                     }
-                } else if (this.isHidden) {
-                    // Always show navbar when above threshold
-                    this.showNavbar();
+                }
+                // Tablet: Moderate sensitivity
+                else if (isTablet) {
+                    if (currentScrollY > this.scrollThreshold) {
+                        if (this.scrollDirection === 'down' && !this.isHidden) {
+                            this.hideNavbar();
+                        } else if (this.scrollDirection === 'up' && this.isHidden) {
+                            this.showNavbar();
+                        }
+                    } else if (this.isHidden) {
+                        this.showNavbar();
+                    }
+                }
+                // Desktop: Original behavior
+                else {
+                    if (currentScrollY > this.scrollThreshold) {
+                        if (this.scrollDirection === 'down' && !this.isHidden) {
+                            this.hideNavbar();
+                        } else if (this.scrollDirection === 'up' && this.isHidden) {
+                            this.showNavbar();
+                        }
+                    } else if (this.isHidden) {
+                        // Always show navbar when above threshold
+                        this.showNavbar();
+                    }
                 }
                 
                 this.lastScrollY = currentScrollY;
@@ -454,16 +491,15 @@
             hideNavbar() {
                 if (this.isHidden) return;
                 
-                this.navbar.style.transform = 'translateY(-60%)';
+                this.navbar.style.transform = 'translateY(-100%)';
                 this.isHidden = true;
                 
-                // Adjust content padding to account for visible navbar portion
+                // Adjust content padding to account for hidden navbar
                 if (this.contentWrapper) {
-                    const visibleNavbarHeight = this.navbarHeight * 0.4; // 40% visible
-                    this.contentWrapper.style.paddingTop = visibleNavbarHeight + 'px';
+                    this.contentWrapper.style.paddingTop = '0px'; // No padding when navbar is completely hidden
                     
                     if (this.debug) {
-                        console.log('Navbar hidden, content padding:', visibleNavbarHeight + 'px');
+                        console.log('Navbar hidden, content padding: 0px');
                     }
                 }
             }
@@ -501,9 +537,9 @@
                         will-change: transform;
                     }
                     
-                    /* Navbar hides 60% of its height when scrolling down */
+                    /* Navbar completely hides when scrolling down */
                     #mainNavbar.hidden {
-                        transform: translateY(-60%);
+                        transform: translateY(-100%);
                     }
                     
                     /* Ensure navbar stays on top when hidden */
