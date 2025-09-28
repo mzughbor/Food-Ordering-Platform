@@ -436,7 +436,7 @@
             hideNavbar() {
                 if (this.isHidden) return;
                 
-                this.navbar.style.transform = 'translateY(-100%)';
+                this.navbar.style.transform = 'translateY(-60%)';
                 this.isHidden = true;
             }
 
@@ -461,6 +461,11 @@
                     #mainNavbar {
                         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                         will-change: transform;
+                    }
+                    
+                    /* Navbar hides 60% of its height when scrolling down */
+                    #mainNavbar.hidden {
+                        transform: translateY(-60%);
                     }
                     
                     /* Ensure navbar stays on top when hidden */
