@@ -1,0 +1,325 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Order Tracking - Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Order Header -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary-green text-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-bold">
+                            <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                            Order #{{ order.id }}
+                        </h4>
+                        <span class="badge fs-6 px-3 py-2 
+                            {% if order.status == 'pending' %}bg-warning text-dark
+                            {% elif order.status == 'confirmed' %}bg-info text-dark
+                            {% elif order.status == 'delivered' %}bg-success text-dark
+                            {% elif order.status == 'cancelled' %}bg-danger text-white
+                            {% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-2">Order Details</h6>
+                            <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y \a\t g:i A" }}</p>
+                            <p class="mb-1"><strong>Restaurant:</strong> {{ order.restaurant.name|default:"N/A" }}</p>
+                            <p class="mb-1"><strong>Total Amount:</strong> ${{ order.total_amount|floatformat:2 }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-2">Delivery Information</h6>
+                            <p class="mb-1"><strong>Status:</strong> {{ order.get_status_display }}</p>
+                            <p class="mb-1"><strong>Last Updated:</strong> {{ order.updated_at|date:"F d, Y \a\t g:i A" }}</p>
+                            <p class="mb-0"><strong>Estimated Delivery:</strong> 
+                                {% if order.status == 'delivered' %}
+                                    Delivered
+                                {% elif order.status == 'cancelled' %}
+                                    Cancelled
+                                {% else %}
+                                    30-45 minutes
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Progress -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">
+                        <ion-icon name="time-outline" class="me-2"></ion-icon>
+                        Order Progress
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item 
+                            {% if order.status in 'confirmed,delivered' %}completed
+                            {% elif order.status == 'pending' %}active
+                            {% endif %}">
+                            <div class="timeline-marker">
+                                <ion-icon name="checkmark-circle" class="text-success"></ion-icon>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">Order Placed</h6>
+                                <p class="text-muted mb-0">{{ order.created_at|date:"F d, Y \a\t g:i A" }}</p>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item 
+                            {% if order.status == 'delivered' %}completed
+                            {% elif order.status == 'confirmed' %}active
+                            {% endif %}">
+                            <div class="timeline-marker">
+                                <ion-icon name="restaurant-outline" class="text-info"></ion-icon>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">Order Confirmed</h6>
+                                <p class="text-muted mb-0">
+                                    {% if order.status in 'confirmed,delivered' %}
+                                        Restaurant confirmed your order
+                                    {% else %}
+                                        Waiting for restaurant confirmation
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item 
+                            {% if order.status == 'delivered' %}completed
+                            {% endif %}">
+                            <div class="timeline-marker">
+                                <ion-icon name="bicycle-outline" class="text-warning"></ion-icon>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">Out for Delivery</h6>
+                                <p class="text-muted mb-0">
+                                    {% if order.status == 'delivered' %}
+                                        Your order is on its way
+                                    {% else %}
+                                        Waiting for delivery
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item 
+                            {% if order.status == 'delivered' %}completed
+                            {% endif %}">
+                            <div class="timeline-marker">
+                                <ion-icon name="home-outline" class="text-success"></ion-icon>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">Delivered</h6>
+                                <p class="text-muted mb-0">
+                                    {% if order.status == 'delivered' %}
+                                        Order delivered successfully
+                                    {% else %}
+                                        Waiting for delivery
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">
+                        <ion-icon name="list-outline" class="me-2"></ion-icon>
+                        Order Items
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0 py-3 px-4">Item</th>
+                                    <th class="border-0 py-3 px-4 text-center">Quantity</th>
+                                    <th class="border-0 py-3 px-4 text-center">Price</th>
+                                    <th class="border-0 py-3 px-4 text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td class="py-4 px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <div class="bg-light rounded-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                    <ion-icon name="fast-food-outline" style="font-size: 24px; color: #94D82D;"></ion-icon>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-1">{{ item.meal.name }}</h6>
+                                                <small class="text-muted">{{ item.meal.restaurant.name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <span class="fw-bold">{{ item.quantity }}</span>
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <span class="fw-bold">${{ item.price|floatformat:2 }}</span>
+                                    </td>
+                                    <td class="py-4 px-4 text-end">
+                                        <span class="fw-bold">${{ item.total_price|floatformat:2 }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-5">
+                                        <ion-icon name="receipt-outline" style="font-size: 48px; color: #ccc;" class="mb-3"></ion-icon>
+                                        <h5>No items found</h5>
+                                        <p>This order doesn't have any items.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-3">Order Summary</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>${{ order.total_amount|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Delivery Fee:</span>
+                                <span class="text-success">Free</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax:</span>
+                                <span>$0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold fs-5">Total:</span>
+                                <span class="fw-bold fs-5 text-primary">${{ order.total_amount|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-3">Need Help?</h6>
+                            <p class="text-muted mb-3">If you have any questions about your order, please contact us.</p>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'users:home' %}" class="btn btn-outline-primary">
+                                    <ion-icon name="home-outline" class="me-1"></ion-icon>
+                                    Back to Home
+                                </a>
+                                <a href="{% url 'orders:cart' %}" class="btn btn-primary">
+                                    <ion-icon name="cart-outline" class="me-1"></ion-icon>
+                                    View Cart
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 30px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.timeline-item.completed .timeline-marker {
+    background: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.timeline-item.active .timeline-marker {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+}
+
+.timeline-item.completed .timeline-content h6 {
+    color: #28a745;
+}
+
+.timeline-item.active .timeline-content h6 {
+    color: #007bff;
+}
+
+.card-header.bg-primary-green {
+    background-color: #94D82D !important;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+.badge.bg-info {
+    background-color: #17a2b8 !important;
+}
+
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,259 @@
+<!-- Admin Dashboard Styles -->
+<style>
+    :root {
+        --primary-green: #198754;
+        --secondary-green: #157347;
+        --border-radius-sm: 0.375rem;
+        --border-radius-md: 0.5rem;
+        --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .admin-sidebar {
+        min-height: 100vh;
+        background: var(--bs-body-bg);
+        border-right: 1px solid var(--bs-border-color);
+    }
+    
+    .admin-content {
+        min-height: 100vh;
+        background: var(--bs-body-bg);
+    }
+    
+    .admin-header {
+        background: var(--bs-body-bg);
+        border-bottom: 1px solid var(--bs-border-color);
+        padding: 1rem 0;
+    }
+    
+    .stats-card {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: var(--border-radius-md);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+    
+    .stats-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    
+    .user-table {
+        background: var(--bs-body-bg);
+        border-radius: var(--border-radius-md);
+        overflow: hidden;
+    }
+    
+    .user-table th {
+        background: var(--bs-secondary-bg);
+        border-bottom: 2px solid var(--bs-border-color);
+        font-weight: 600;
+        color: var(--bs-body-color);
+    }
+    
+    .user-table td {
+        vertical-align: middle;
+        border-bottom: 1px solid var(--bs-border-color);
+        color: var(--bs-body-color);
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-inactive {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .settings-section {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: var(--border-radius-md);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .settings-section h4 {
+        color: var(--bs-body-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-green);
+    }
+    
+    .form-floating > label {
+        color: var(--bs-body-color);
+    }
+    
+    .btn-save {
+        background: var(--primary-green);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: var(--border-radius-md);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-save:hover {
+        background: var(--secondary-green);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .filter-dropdown {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: var(--border-radius-sm);
+        padding: 0.5rem 1rem;
+        color: var(--bs-body-color);
+    }
+    
+    .filter-dropdown:focus {
+        border-color: var(--primary-green);
+        box-shadow: 0 0 0 0.2rem rgba(148, 216, 45, 0.25);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .admin-sidebar {
+            min-height: auto;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .admin-content {
+            padding-top: 1rem;
+        }
+        
+        .stats-card {
+            margin-bottom: 1rem;
+        }
+        
+        .user-table {
+            font-size: 0.875rem;
+        }
+        
+        .settings-section {
+            padding: 1rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .admin-header .row {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+        
+        .admin-header .col-auto {
+            margin-top: 1rem;
+        }
+        
+        .filter-dropdown {
+            margin-bottom: 0.5rem;
+        }
+    }
+    
+    /* Admin Section Management */
+    .admin-section {
+        display: none;
+    }
+    
+    .admin-section:first-child {
+        display: block;
+    }
+    
+    /* Show active sections */
+    .admin-section.active-section {
+        display: block !important;
+    }
+    
+    .admin-nav-link {
+        transition: all 0.3s ease;
+        border-radius: 0.375rem;
+        margin-bottom: 0.25rem;
+        color: var(--bs-body-color) !important;
+    }
+    
+    /* Dark mode fixes for cards and containers */
+    .card {
+        background-color: var(--bs-body-bg) !important;
+        border-color: var(--bs-border-color) !important;
+    }
+    
+    .card-header {
+        background-color: var(--bs-secondary-bg) !important;
+        border-bottom-color: var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .card-body {
+        background-color: var(--bs-body-bg) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .table {
+        --bs-table-bg: var(--bs-body-bg);
+        --bs-table-color: var(--bs-body-color);
+        --bs-table-border-color: var(--bs-border-color);
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--bs-body-bg) !important;
+        border-color: var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bs-body-bg) !important;
+        border-color: var(--primary-green) !important;
+        color: var(--bs-body-color) !important;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+    }
+    
+    .btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-warning, .btn-outline-info, .btn-outline-danger {
+        border-color: var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .btn-outline-primary:hover, .btn-outline-secondary:hover, .btn-outline-success:hover, .btn-outline-warning:hover, .btn-outline-info:hover, .btn-outline-danger:hover {
+        background-color: var(--bs-secondary-bg) !important;
+        border-color: var(--bs-border-color) !important;
+        color: var(--bs-body-color) !important;
+    }
+    
+    .admin-nav-link:hover {
+        background-color: var(--bs-secondary-bg);
+        transform: translateX(5px);
+        color: var(--bs-body-color) !important;
+    }
+    
+    .admin-nav-link.active {
+        background-color: var(--primary-green);
+        color: white !important;
+    }
+    
+    .admin-nav-link.active .badge {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+    }
+</style>

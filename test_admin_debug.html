@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Debug Test</title>
+    <script>
+        // Test if the functions are available
+        window.addEventListener('load', function() {
+            console.log('=== ADMIN DASHBOARD DEBUG ===');
+            console.log('showAdminSection function:', typeof showAdminSection);
+            console.log('getUserManagementContent function:', typeof getUserManagementContent);
+            console.log('getRestaurantManagementContent function:', typeof getRestaurantManagementContent);
+            console.log('Admin nav links found:', document.querySelectorAll('.admin-nav-link').length);
+            console.log('Main content element:', document.getElementById('mainContent'));
+            console.log('================================');
+        });
+    </script>
+</head>
+<body>
+    <h1>Admin Dashboard Debug Test</h1>
+    <p>Check the browser console for debug information.</p>
+</body>
+</html>

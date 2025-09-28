@@ -1,0 +1,121 @@
+{% extends 'users/base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - FoodOrdering{% endblock %}
+
+{% block content %}
+<!-- CSRF Token for AJAX requests -->
+{% csrf_token %}
+
+<!-- Admin Dashboard -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 admin-sidebar p-0">
+            <div class="p-3">
+                <h5 class="fw-bold mb-4">
+                    <ion-icon name="settings-outline" class="me-2"></ion-icon>
+                    Admin Panel
+                </h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link active fw-medium admin-nav-link" href="#dashboard" data-section="dashboard">
+                        <ion-icon name="grid-outline" class="me-2"></ion-icon>
+                        Dashboard
+                        <span class="badge bg-primary ms-auto">{{ total_users|add:total_restaurants|add:total_orders }}</span>
+                    </a>
+                    <a class="nav-link fw-medium admin-nav-link" href="#users" data-section="users">
+                        <ion-icon name="people-outline" class="me-2"></ion-icon>
+                        User Management
+                        <span class="badge bg-success ms-auto">{{ total_users }}</span>
+                    </a>
+                    <a class="nav-link fw-medium admin-nav-link" href="#restaurants" data-section="restaurants">
+                        <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                        Restaurants
+                        <span class="badge bg-warning ms-auto">{{ total_restaurants }}</span>
+                    </a>
+                    <a class="nav-link fw-medium admin-nav-link" href="#orders" data-section="orders">
+                        <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                        Orders
+                        <span class="badge bg-info ms-auto">{{ total_orders }}</span>
+                    </a>
+                    <a class="nav-link fw-medium admin-nav-link" href="#meals" data-section="meals">
+                        <ion-icon name="fast-food-outline" class="me-2"></ion-icon>
+                        Meals
+                        <span class="badge bg-secondary ms-auto">0</span>
+                    </a>
+                    <a class="nav-link fw-medium admin-nav-link" href="#analytics" data-section="analytics">
+                        <ion-icon name="bar-chart-outline" class="me-2"></ion-icon>
+                        Analytics
+                    </a>
+                    <a class="nav-link fw-medium admin-nav-link" href="#settings" data-section="settings">
+                        <ion-icon name="cog-outline" class="me-2"></ion-icon>
+                        Settings
+                    </a>
+                    <a class="nav-link fw-medium" href="{% url 'users:home' %}">
+                        <ion-icon name="arrow-back-outline" class="me-2"></ion-icon>
+                        Back to Site
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 admin-content">
+            <!-- Admin Header -->
+            <div class="admin-header">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary" id="simpleViewBtn" onclick="toggleView('simple')">
+                                    <ion-icon name="grid-outline" class="me-1"></ion-icon>
+                                    Simple View
+                                </button>
+                                <button type="button" class="btn btn-primary" id="comprehensiveViewBtn" onclick="toggleView('comprehensive')">
+                                    <ion-icon name="layers-outline" class="me-1"></ion-icon>
+                                    Comprehensive View
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="d-flex align-items-center">
+                                <span class="text-body-secondary me-3">Welcome, {{ user.username }}</span>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <ion-icon name="person-circle-outline" class="me-1"></ion-icon>
+                                        {{ user.username }}
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
+                                        <li><a class="dropdown-item" href="#settings">Settings</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="container-fluid py-4">
+                <!-- Main Content Area -->
+                <div id="mainContent">
+                    {% include 'users/admin_dashboard_sections/dashboard.html' %}
+                    {% include 'users/admin_dashboard_sections/simple_view.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include CSS -->
+{% include 'users/admin_dashboard_sections/styles.html' %}
+
+<!-- Include JavaScript in correct order -->
+<script src="{% static 'js/admin_dashboard_core.js' %}"></script>
+<script src="{% static 'js/admin_dashboard_user_management.js' %}"></script>
+<script src="{% static 'js/admin_dashboard_restaurant_management.js' %}"></script>
+{% include 'users/admin_dashboard_sections/scripts.html' %}
+{% endblock %}

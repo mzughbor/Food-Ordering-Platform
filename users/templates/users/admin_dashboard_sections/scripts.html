@@ -1,0 +1,722 @@
+{% load static %}
+<!-- Admin Dashboard JavaScript -->
+<script src="{% static 'js/admin_dashboard_core.js' %}"></script>
+<script src="{% static 'js/admin_dashboard_user_management.js' %}"></script>
+<script src="{% static 'js/admin_dashboard_restaurant_management.js' %}"></script>
+
+<script>
+// Content generation functions (these will be moved to separate files later)
+function getDashboardContent() {
+    return `
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold mb-0">Dashboard Overview</h2>
+                <p class="text-body-secondary mb-0">Welcome to the admin dashboard</p>
+            </div>
+        </div>
+        <!-- Stats Cards will be loaded here -->
+    `;
+}
+
+function getUserManagementContent() {
+    return `
+        <div id="users-section" class="admin-section">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-0">User Management</h2>
+                    <p class="text-body-secondary mb-0">Manage all platform users</p>
+                </div>
+            </div>
+        
+        <!-- User Management Tools -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="settings-section">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-6">
+                            <h4 class="mb-0">
+                                <ion-icon name="people-outline" class="me-2"></ion-icon>
+                                All Users
+                                <span class="badge bg-primary ms-2">{{ users|length }}</span>
+                            </h4>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-success" onclick="showAddUserModal()">
+                                <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                Add New User
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="exportUsers()">
+                                <ion-icon name="download-outline" class="me-1"></ion-icon>
+                                Export Users
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <select class="form-select filter-dropdown" id="userRoleFilter">
+                                <option value="">All Roles</option>
+                                <option value="customer">Customer</option>
+                                <option value="owner">Restaurant Owner</option>
+                                <option value="delivery">Delivery Person</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select filter-dropdown" id="userStatusFilter">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="userSearchInput" placeholder="Search users...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">
+                                    <ion-icon name="search"></ion-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Users Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAllUsers" onchange="toggleSelectAll()">
+                                    </th>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr data-user-id="{{ user.id }}" data-role="{{ user.role }}" data-status="{{ user.is_active|yesno:'active,inactive' }}">
+                                    <td>
+                                        <input type="checkbox" class="user-checkbox" value="{{ user.id }}">
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                {{ user.username|first|upper }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">{{ user.username }}</h6>
+                                                <small class="text-body-secondary">{{ user.get_full_name|default:"No name" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'owner' %}warning{% elif user.role == 'delivery' %}info{% else %}success{% endif %}">
+                                            {{ user.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                            {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary edit-user-btn" 
+                                                    data-user-id="{{ user.id }}" 
+                                                    data-user-name="{{ user.username }}"
+                                                    title="Edit User">
+                                                <ion-icon name="create-outline"></ion-icon>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning toggle-user-status-btn" 
+                                                    data-user-id="{{ user.id }}" 
+                                                    data-user-name="{{ user.username }}"
+                                                    data-is-active="{{ user.is_active|yesno:'true,false' }}"
+                                                    title="Toggle Status">
+                                                <ion-icon name="{% if user.is_active %}eye-off-outline{% else %}eye-outline{% endif %}"></ion-icon>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger delete-user-btn" 
+                                                    data-user-id="{{ user.id }}" 
+                                                    data-user-name="{{ user.username }}"
+                                                    title="Delete User">
+                                                <ion-icon name="trash-outline"></ion-icon>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Bulk Actions -->
+                    <div class="row mt-3" id="bulkActions" style="display: none;">
+                        <div class="col-12">
+                            <div class="alert alert-info d-flex align-items-center justify-content-between">
+                                <span>
+                                    <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                    <span id="selectedCount">0</span> users selected
+                                </span>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-warning me-2" onclick="bulkToggleStatus()">
+                                        <ion-icon name="eye-outline" class="me-1"></ion-icon>
+                                        Toggle Status
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="bulkDeleteUsers()">
+                                        <ion-icon name="trash-outline" class="me-1"></ion-icon>
+                                        Delete Selected
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    `;
+}
+
+function getRestaurantManagementContent() {
+    return `
+        <div id="restaurants-section" class="admin-section">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-0">Restaurant Management</h2>
+                    <p class="text-body-secondary mb-0">Manage restaurants and their settings</p>
+                </div>
+            </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="settings-section">
+                    <h4 class="mb-4">
+                        <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                        Restaurant Management Tools
+                        <span class="badge bg-warning ms-2">{{ total_restaurants }}</span>
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="list-outline" class="me-2"></ion-icon>
+                                        All Restaurants
+                                    </h5>
+                                    <p class="card-text">View and manage all registered restaurants.</p>
+                                    <button class="btn btn-outline-primary" onclick="showRestaurantList()">
+                                        <ion-icon name="list-outline" class="me-1"></ion-icon>
+                                        View Restaurants
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="add-outline" class="me-2"></ion-icon>
+                                        Add Restaurant
+                                    </h5>
+                                    <p class="card-text">Register a new restaurant to the platform.</p>
+                                    <button class="btn btn-outline-success" onclick="showAddRestaurantModal()">
+                                        <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                        Add Restaurant
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="analytics-outline" class="me-2"></ion-icon>
+                                        Restaurant Analytics
+                                    </h5>
+                                    <p class="card-text">View restaurant performance and statistics.</p>
+                                    <button class="btn btn-outline-info" onclick="showRestaurantAnalytics()">
+                                        <ion-icon name="bar-chart-outline" class="me-1"></ion-icon>
+                                        View Analytics
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                <strong>Restaurant Management Features:</strong> 
+                                Manage restaurant registrations, edit restaurant details, 
+                                toggle restaurant status, and view restaurant performance metrics.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    `;
+}
+
+function getOrderManagementContent() {
+    return `
+        <div id="orders-section" class="admin-section">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-0">Order Management</h2>
+                    <p class="text-body-secondary mb-0">Manage all orders and their status</p>
+                </div>
+            </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="settings-section">
+                    <h4 class="mb-4">
+                        <ion-icon name="receipt-outline" class="me-2"></ion-icon>
+                        Order Management Tools
+                        <span class="badge bg-primary ms-2">{{ recent_orders|length }}</span>
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="list-outline" class="me-2"></ion-icon>
+                                        Order List
+                                    </h5>
+                                    <p class="card-text">View and manage all orders with advanced filtering and search.</p>
+                                    <button class="btn btn-outline-primary" onclick="showOrderList()">
+                                        <ion-icon name="list-outline" class="me-1"></ion-icon>
+                                        View Orders
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="analytics-outline" class="me-2"></ion-icon>
+                                        Order Analytics
+                                    </h5>
+                                    <p class="card-text">View order statistics, revenue reports, and performance metrics.</p>
+                                    <button class="btn btn-outline-primary" onclick="showOrderAnalytics()">
+                                        <ion-icon name="bar-chart-outline" class="me-1"></ion-icon>
+                                        View Analytics
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                <strong>Order Management Features:</strong> 
+                                View orders, update status, edit details, and manage order lifecycle. 
+                                All order operations are available through the action buttons in the orders table.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    `;
+}
+
+function getMealManagementContent() {
+    return `
+        <div id="meals-section" class="admin-section">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-0">Meal Management</h2>
+                    <p class="text-body-secondary mb-0">Manage meals across all restaurants</p>
+                </div>
+            </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="settings-section">
+                    <h4 class="mb-4">
+                        <ion-icon name="fast-food-outline" class="me-2"></ion-icon>
+                        Meal Management Tools
+                        <span class="badge bg-secondary ms-2">0</span>
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="list-outline" class="me-2"></ion-icon>
+                                        All Meals
+                                    </h5>
+                                    <p class="card-text">View and manage all meals from all restaurants.</p>
+                                    <button class="btn btn-outline-primary" onclick="showMealList()">
+                                        <ion-icon name="list-outline" class="me-1"></ion-icon>
+                                        View Meals
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="add-outline" class="me-2"></ion-icon>
+                                        Add Meal
+                                    </h5>
+                                    <p class="card-text">Add a new meal to any restaurant.</p>
+                                    <button class="btn btn-outline-success" onclick="showAddMealModal()">
+                                        <ion-icon name="add-outline" class="me-1"></ion-icon>
+                                        Add Meal
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                                        By Restaurant
+                                    </h5>
+                                    <p class="card-text">Manage meals by specific restaurant.</p>
+                                    <button class="btn btn-outline-info" onclick="showMealsByRestaurant()">
+                                        <ion-icon name="restaurant-outline" class="me-1"></ion-icon>
+                                        By Restaurant
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="analytics-outline" class="me-2"></ion-icon>
+                                        Meal Analytics
+                                    </h5>
+                                    <p class="card-text">View meal performance and popularity.</p>
+                                    <button class="btn btn-outline-warning" onclick="showMealAnalytics()">
+                                        <ion-icon name="bar-chart-outline" class="me-1"></ion-icon>
+                                        Analytics
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                <strong>Meal Management Features:</strong> 
+                                Manage meals across all restaurants, edit meal details, 
+                                toggle availability, and view meal performance metrics.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    `;
+}
+
+function getAnalyticsContent() {
+    return `
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold mb-0">Analytics</h2>
+                <p class="text-body-secondary mb-0">Platform analytics and insights</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <ion-icon name="bar-chart-outline" class="me-2"></ion-icon>
+                    Analytics dashboard coming soon! Charts and detailed statistics will be available here.
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getSettingsContent() {
+    return `
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold mb-0">Platform Settings</h2>
+                <p class="text-body-secondary mb-0">Configure platform-wide settings</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="settings-section">
+                    <h4 class="mb-4">
+                        <ion-icon name="cog-outline" class="me-2"></ion-icon>
+                        Quick Settings
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                        Site Information
+                                    </h5>
+                                    <p class="card-text">Configure site name, description, logo, and basic information.</p>
+                                    <a href="/admin-api/settings/" class="btn btn-outline-primary">
+                                        <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                        Manage Site Info
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="call-outline" class="me-2"></ion-icon>
+                                        Contact & Support
+                                    </h5>
+                                    <p class="card-text">Set up contact information and support details.</p>
+                                    <a href="/admin-api/settings/" class="btn btn-outline-primary">
+                                        <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                        Manage Contact
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="cash-outline" class="me-2"></ion-icon>
+                                        Pricing & Fees
+                                    </h5>
+                                    <p class="card-text">Configure delivery fees, tax rates, and pricing settings.</p>
+                                    <a href="/admin-api/settings/" class="btn btn-outline-primary">
+                                        <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                        Manage Pricing
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <ion-icon name="toggle-outline" class="me-2"></ion-icon>
+                                        Feature Toggles
+                                    </h5>
+                                    <p class="card-text">Enable/disable platform features and maintenance mode.</p>
+                                    <a href="/admin-api/settings/" class="btn btn-outline-primary">
+                                        <ion-icon name="settings-outline" class="me-1"></ion-icon>
+                                        Manage Features
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                                <strong>Full Settings Panel:</strong> 
+                                <a href="/admin-api/settings/" class="alert-link">Click here to access the complete platform settings panel</a> 
+                                with all configuration options including SEO, social media, and advanced settings.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Order Management Functions
+function initializeOrderManagement() {
+    const editOrderBtns = document.querySelectorAll('.edit-order-btn');
+    editOrderBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            showOrderEditModal(orderId);
+        });
+    });
+    
+    const updateOrderStatusBtns = document.querySelectorAll('.update-order-status-btn');
+    updateOrderStatusBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            const currentStatus = this.getAttribute('data-current-status');
+            showOrderStatusModal(orderId, currentStatus);
+        });
+    });
+    
+    const deleteOrderBtns = document.querySelectorAll('.delete-order-btn');
+    deleteOrderBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const orderId = this.getAttribute('data-order-id');
+            deleteOrder(orderId);
+        });
+    });
+}
+
+function showOrderEditModal(orderId) {
+    showNotification(`Edit order functionality for Order #${orderId} - Coming soon!`, 'info');
+}
+
+function showOrderStatusModal(orderId, currentStatus) {
+    const statusOptions = ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'];
+    const currentIndex = statusOptions.indexOf(currentStatus);
+    
+    let statusHtml = '<select class="form-select" id="orderStatusSelect">';
+    statusOptions.forEach((status, index) => {
+        const selected = index === currentIndex ? 'selected' : '';
+        statusHtml += `<option value="${status}" ${selected}>${status.charAt(0).toUpperCase() + status.slice(1)}</option>`;
+    });
+    statusHtml += '</select>';
+    
+    if (confirm(`Update status for Order #${orderId}?\n\nCurrent: ${currentStatus}\n\nClick OK to change status.`)) {
+        const newStatus = prompt(`Enter new status for Order #${orderId}:`, currentStatus);
+        if (newStatus && newStatus !== currentStatus) {
+            updateOrderStatus(orderId, newStatus);
+        }
+    }
+}
+
+function updateOrderStatus(orderId, newStatus) {
+    fetch(`/admin-api/orders/${orderId}/update-status/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({status: newStatus})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`Order #${orderId} status updated to ${newStatus}!`, 'success');
+            location.reload(); // Refresh to show updated status
+        } else {
+            showNotification(`Error: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error updating order status', 'error');
+    });
+}
+
+function deleteOrder(orderId) {
+    if (confirm(`Are you sure you want to delete Order #${orderId}? This action cannot be undone!`)) {
+        fetch(`/admin-api/orders/${orderId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(`Order #${orderId} deleted successfully!`, 'success');
+                location.reload(); // Refresh to remove deleted order
+            } else {
+                showNotification(`Error: ${data.error}`, 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Error deleting order', 'error');
+        });
+    }
+}
+
+// Meal Management Functions
+function showMealList() {
+    showNotification('Meal List functionality coming soon!', 'info');
+}
+
+function showAddMealModal() {
+    showNotification('Add Meal functionality coming soon!', 'info');
+}
+
+function showMealsByRestaurant() {
+    showNotification('Meals by Restaurant functionality coming soon!', 'info');
+}
+
+function showMealAnalytics() {
+    showNotification('Meal Analytics functionality coming soon!', 'info');
+}
+
+// Order Management Functions
+function showOrderList() {
+    showNotification('Order List functionality coming soon!', 'info');
+}
+
+function showOrderAnalytics() {
+    showNotification('Order Analytics functionality coming soon!', 'info');
+}
+
+// Platform Settings Functions
+function initializePlatformSettings() {
+    const form = document.getElementById('platformSettingsForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            savePlatformSettings();
+        });
+    }
+}
+
+function savePlatformSettings() {
+    const form = document.getElementById('platformSettingsForm');
+    const formData = new FormData(form);
+    const submitBtn = document.getElementById('saveSettingsBtn');
+    
+    // Show loading state
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<ion-icon name="hourglass-outline" class="me-1"></ion-icon>Saving...';
+    submitBtn.disabled = true;
+    
+    // Submit form
+    fetch('/admin-api/settings/update/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Platform settings updated successfully!', 'success');
+            // Optionally reload the page to show updated values
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Error updating settings', 'error');
+        console.error('Error:', error);
+    })
+    .finally(() => {
+        // Reset button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Initialize platform settings when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializePlatformSettings();
+});
+</script>
