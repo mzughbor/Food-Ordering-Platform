@@ -133,8 +133,10 @@
     {% endif %}
 
     <!-- Main Content -->
-    {% block content %}
-    {% endblock %}
+    <div class="main-content-wrapper" id="mainContentWrapper">
+        {% block content %}
+        {% endblock %}
+    </div>
 
     <!-- Footer -->
     <footer class="bg-dark text-light py-5">
@@ -326,6 +328,7 @@
         class SmartNavbar {
             constructor() {
                 this.navbar = document.getElementById('mainNavbar');
+                this.contentWrapper = document.getElementById('mainContentWrapper');
                 this.lastScrollY = window.scrollY;
                 this.scrollThreshold = 0;
                 this.isHidden = false;
@@ -342,6 +345,9 @@
                 
                 // Calculate navbar height
                 this.calculateNavbarHeight();
+                
+                // Set initial content padding
+                this.setInitialContentPadding();
                 
                 // Find sections on the page
                 this.findSections();
@@ -361,6 +367,18 @@
 
             calculateNavbarHeight() {
                 this.navbarHeight = this.navbar.offsetHeight;
+            }
+
+            setInitialContentPadding() {
+                // Set initial padding to account for full navbar height
+                if (this.contentWrapper) {
+                    this.contentWrapper.style.paddingTop = this.navbarHeight + 'px';
+                    this.contentWrapper.style.transition = 'padding-top 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                    
+                    if (this.debug) {
+                        console.log('Set initial content padding:', this.navbarHeight + 'px');
+                    }
+                }
             }
 
             findSections() {
@@ -438,6 +456,16 @@
                 
                 this.navbar.style.transform = 'translateY(-60%)';
                 this.isHidden = true;
+                
+                // Adjust content padding to account for visible navbar portion
+                if (this.contentWrapper) {
+                    const visibleNavbarHeight = this.navbarHeight * 0.4; // 40% visible
+                    this.contentWrapper.style.paddingTop = visibleNavbarHeight + 'px';
+                    
+                    if (this.debug) {
+                        console.log('Navbar hidden, content padding:', visibleNavbarHeight + 'px');
+                    }
+                }
             }
 
             showNavbar() {
@@ -445,11 +473,21 @@
                 
                 this.navbar.style.transform = 'translateY(0)';
                 this.isHidden = false;
+                
+                // Restore full navbar height padding
+                if (this.contentWrapper) {
+                    this.contentWrapper.style.paddingTop = this.navbarHeight + 'px';
+                    
+                    if (this.debug) {
+                        console.log('Navbar shown, content padding:', this.navbarHeight + 'px');
+                    }
+                }
             }
 
             handleResize() {
                 // Recalculate on window resize
                 this.calculateNavbarHeight();
+                this.setInitialContentPadding();
                 this.findSections();
                 this.calculateScrollThreshold();
             }
