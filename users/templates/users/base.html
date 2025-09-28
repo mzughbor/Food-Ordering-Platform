@@ -27,7 +27,7 @@
 </head>
 <body>
     <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light-green sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light-green sticky-top" id="mainNavbar">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'users:home' %}">
                 <span class="fw-bold text-dark fs-3">FoodOrdering</span>
@@ -320,5 +320,167 @@
     {% if user.is_authenticated and user.role == 'customer' %}
     <script src="{% static 'js/cart.js' %}"></script>
     {% endif %}
+
+    <!-- Smart Navbar JavaScript -->
+    <script>
+        class SmartNavbar {
+            constructor() {
+                this.navbar = document.getElementById('mainNavbar');
+                this.lastScrollY = window.scrollY;
+                this.scrollThreshold = 0;
+                this.isHidden = false;
+                this.scrollDirection = 'down';
+                this.sections = [];
+                this.navbarHeight = 0;
+                this.debug = false; // Set to true for debugging
+                
+                this.init();
+            }
+
+            init() {
+                if (!this.navbar) return;
+                
+                // Calculate navbar height
+                this.calculateNavbarHeight();
+                
+                // Find sections on the page
+                this.findSections();
+                
+                // Calculate scroll threshold (2 sections + navbar height)
+                this.calculateScrollThreshold();
+                
+                // Add scroll event listener
+                window.addEventListener('scroll', this.handleScroll.bind(this));
+                
+                // Add resize event listener to recalculate on window resize
+                window.addEventListener('resize', this.handleResize.bind(this));
+                
+                // Add CSS for smooth transitions
+                this.addStyles();
+            }
+
+            calculateNavbarHeight() {
+                this.navbarHeight = this.navbar.offsetHeight;
+            }
+
+            findSections() {
+                // Find all sections, headers, or main content areas
+                this.sections = document.querySelectorAll('section, .hero-section, .main-content, .container > div:first-child');
+                
+                // If no sections found, use viewport height as fallback
+                if (this.sections.length === 0) {
+                    this.sections = [{ offsetTop: 0, offsetHeight: window.innerHeight }];
+                }
+            }
+
+            calculateScrollThreshold() {
+                if (this.sections.length >= 2) {
+                    // Calculate height of first 2 sections
+                    const firstSectionHeight = this.sections[0].offsetHeight;
+                    const secondSectionHeight = this.sections[1].offsetHeight;
+                    this.scrollThreshold = firstSectionHeight + secondSectionHeight - this.navbarHeight;
+                    
+                    if (this.debug) {
+                        console.log('Smart Navbar Debug:', {
+                            sectionsFound: this.sections.length,
+                            firstSectionHeight: firstSectionHeight,
+                            secondSectionHeight: secondSectionHeight,
+                            navbarHeight: this.navbarHeight,
+                            calculatedThreshold: this.scrollThreshold
+                        });
+                    }
+                } else {
+                    // Fallback: use 2 viewport heights minus navbar height
+                    this.scrollThreshold = (window.innerHeight * 2) - this.navbarHeight;
+                    
+                    if (this.debug) {
+                        console.log('Smart Navbar Debug (Fallback):', {
+                            sectionsFound: this.sections.length,
+                            viewportHeight: window.innerHeight,
+                            navbarHeight: this.navbarHeight,
+                            calculatedThreshold: this.scrollThreshold
+                        });
+                    }
+                }
+                
+                // Ensure minimum threshold
+                this.scrollThreshold = Math.max(this.scrollThreshold, window.innerHeight);
+                
+                if (this.debug) {
+                    console.log('Final scroll threshold:', this.scrollThreshold);
+                }
+            }
+
+            handleScroll() {
+                const currentScrollY = window.scrollY;
+                const scrollDelta = currentScrollY - this.lastScrollY;
+                
+                // Determine scroll direction
+                this.scrollDirection = scrollDelta > 0 ? 'down' : 'up';
+                
+                // Only hide/show navbar after passing the threshold
+                if (currentScrollY > this.scrollThreshold) {
+                    if (this.scrollDirection === 'down' && !this.isHidden) {
+                        this.hideNavbar();
+                    } else if (this.scrollDirection === 'up' && this.isHidden) {
+                        this.showNavbar();
+                    }
+                } else if (this.isHidden) {
+                    // Always show navbar when above threshold
+                    this.showNavbar();
+                }
+                
+                this.lastScrollY = currentScrollY;
+            }
+
+            hideNavbar() {
+                if (this.isHidden) return;
+                
+                this.navbar.style.transform = 'translateY(-100%)';
+                this.isHidden = true;
+            }
+
+            showNavbar() {
+                if (!this.isHidden) return;
+                
+                this.navbar.style.transform = 'translateY(0)';
+                this.isHidden = false;
+            }
+
+            handleResize() {
+                // Recalculate on window resize
+                this.calculateNavbarHeight();
+                this.findSections();
+                this.calculateScrollThreshold();
+            }
+
+            addStyles() {
+                // Add CSS for smooth transitions
+                const style = document.createElement('style');
+                style.textContent = `
+                    #mainNavbar {
+                        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                        will-change: transform;
+                    }
+                    
+                    /* Ensure navbar stays on top when hidden */
+                    .navbar.sticky-top {
+                        z-index: 1030;
+                    }
+                    
+                    /* Smooth scroll behavior */
+                    html {
+                        scroll-behavior: smooth;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // Initialize smart navbar when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            new SmartNavbar();
+        });
+    </script>
 </body>
 </html>
