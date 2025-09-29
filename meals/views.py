@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.http import require_http_methods
 from .models import Meal, Favorite
 from orders.models import Order, OrderItem
+from admin_panel.decorators import delivery_forbidden
 
 # Create your views here.
 def meal_list(request):
@@ -52,6 +53,7 @@ def meal_list(request):
 
 
 @login_required
+@delivery_forbidden
 def meal_detail(request, meal_id):
     """Display meal detail page"""
     meal = get_object_or_404(Meal, id=meal_id)
@@ -67,6 +69,7 @@ def meal_detail(request, meal_id):
 
 
 @login_required
+@delivery_forbidden
 def add_to_cart(request, meal_id):
     """Add meal to cart"""
     if request.method == 'POST':

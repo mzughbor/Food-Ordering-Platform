@@ -307,6 +307,104 @@ def restaurant_orders(request):
     return render(request, 'restaurants/restaurant_orders.html', context)
 
 
+@login_required
+def restaurant_order_details(request, order_id):
+    """Get order details for restaurant owner"""
+    if request.user.role not in ['owner', 'admin']:
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+    
+    try:
+        # Get the order and verify it belongs to this restaurant owner
+        if request.user.role == 'admin':
+            order = get_object_or_404(Order, id=order_id)
+        else:
+            restaurant = Restaurant.objects.filter(owner=request.user).first()
+            if not restaurant:
+                return JsonResponse({'success': False, 'error': 'No restaurant found'}, status=404)
+            order = get_object_or_404(Order, id=order_id, restaurant=restaurant)
+        
+        # Get order items
+        items = []
+        for item in order.items.all():
+            items.append({
+                'meal_name': item.meal.name,
+                'quantity': item.quantity,
+                'price': float(item.price),
+                'total': float(item.total_price)
+            })
+        
+        order_data = {
+            'id': order.id,
+            'customer_name': order.user.get_full_name() or order.user.username,
+            'customer_email': order.user.email,
+            'status': order.status,
+            'status_display': order.get_status_display(),
+            'total_amount': float(order.total_amount),
+            'created_at': order.created_at.strftime('%Y-%m-%d %H:%M'),
+            'updated_at': order.updated_at.strftime('%Y-%m-%d %H:%M'),
+            'items': items
+        }
+        
+        return JsonResponse({'success': True, 'order': order_data})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required  
+def restaurant_update_order_status(request, order_id):
+    """Update order status for restaurant owner"""
+    if request.user.role not in ['owner', 'admin']:
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST method required'}, status=405)
+    
+    try:
+        # Get the order and verify it belongs to this restaurant owner
+        if request.user.role == 'admin':
+            order = get_object_or_404(Order, id=order_id)
+        else:
+            restaurant = Restaurant.objects.filter(owner=request.user).first()
+            if not restaurant:
+                return JsonResponse({'success': False, 'error': 'No restaurant found'}, status=404)
+            order = get_object_or_404(Order, id=order_id, restaurant=restaurant)
+        
+        import json
+        try:
+            data = json.loads(request.body)
+        except:
+            data = {}
+        
+        new_status = data.get('status')
+        
+        # Validate status transitions for restaurant owners
+        valid_transitions = {
+            'pending': ['confirmed', 'cancelled'],
+            'confirmed': ['preparing', 'cancelled'],
+            'preparing': ['ready', 'cancelled']
+        }
+        
+        if order.status not in valid_transitions:
+            return JsonResponse({'success': False, 'error': f'Cannot update order from {order.status} status'}, status=400)
+        
+        if new_status not in valid_transitions[order.status]:
+            return JsonResponse({'success': False, 'error': f'Invalid status transition from {order.status} to {new_status}'}, status=400)
+        
+        order.status = new_status
+        order.save()
+        
+        return JsonResponse({
+            'success': True,
+            'order_id': order.id,
+            'status': order.status,
+            'status_display': order.get_status_display()
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 def restaurant_detail(request, restaurant_id):
     """Public restaurant detail page for customers"""
     restaurant = get_object_or_404(Restaurant, id=restaurant_id)

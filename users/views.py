@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods
 import re
 from .models import User
 from restaurants.models import Restaurant
+from meals.models import Meal
 from orders.models import Order
 
 
@@ -116,14 +117,26 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    # Get user's orders ordered by most recent first
+    # Show different content for delivery role vs customers/owners
     from orders.models import Order
-    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')[:10]  # Last 10 orders
-    
-    context = {
-        'user': request.user,
-        'user_orders': user_orders,
-    }
+    if getattr(request.user, 'role', '') == 'delivery':
+        # Delivery: show all delivery-related orders (ready for pickup, in progress, completed)
+        user_orders = Order.objects.filter(
+            status__in=['ready', 'picked_up', 'in_transit', 'delivered']
+        ).order_by('-updated_at')[:30]
+        context = {
+            'user': request.user,
+            'user_orders': user_orders,
+            'is_delivery': True,
+        }
+    else:
+        # Customers/owners: show their own orders
+        user_orders = Order.objects.filter(user=request.user).order_by('-created_at')[:10]
+        context = {
+            'user': request.user,
+            'user_orders': user_orders,
+            'is_delivery': False,
+        }
     return render(request, 'users/profile.html', context)
 
 
@@ -171,6 +184,7 @@ def admin_dashboard_view(request):
     # Get statistics
     total_users = User.objects.count()
     total_restaurants = Restaurant.objects.count()
+    total_meals = Meal.objects.count()
     total_orders = Order.objects.count()
     total_revenue = Order.objects.aggregate(total=Sum('total_amount'))['total'] or 0
     
@@ -182,6 +196,7 @@ def admin_dashboard_view(request):
         'total_users': total_users,
         'total_restaurants': total_restaurants,
         'total_orders': total_orders,
+        'total_meals': total_meals,
         'total_revenue': total_revenue,
         'users': users,
         'recent_orders': recent_orders,

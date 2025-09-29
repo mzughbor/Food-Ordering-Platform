@@ -36,6 +36,19 @@
 <!-- Stats Section -->
 <section class="py-5">
     <div class="container">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" aria-checked="true" id="autoRefreshToggle" checked>
+                <label class="form-check-label" for="autoRefreshToggle">Auto-refresh orders</label>
+            </div>
+            <div class="d-flex gap-2">
+                <button id="refreshOrdersBtn" class="btn btn-outline-primary btn-sm">
+                    <ion-icon name="refresh-outline" class="me-1"></ion-icon>
+                    Refresh now
+                </button>
+            </div>
+        </div>
         <div class="row g-4 mb-5">
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm text-center">
@@ -43,7 +56,7 @@
                         <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="time-outline" size="large" class="text-white"></ion-icon>
                         </div>
-                        <h3 class="fw-bold text-dark">{{ orders.count }}</h3>
+                        <h3 id="ddPending" class="fw-bold text-dark" data-orders-count="{{ orders|length }}">{{ orders.count }}</h3>
                         <p class="text-muted mb-0">
                             {% if user.role == 'admin' %}
                                 Total Orders
@@ -61,7 +74,7 @@
                         <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="checkmark-circle-outline" size="large" class="text-white"></ion-icon>
                         </div>
-                        <h3 class="fw-bold text-dark">0</h3>
+                        <h3 id="ddCompletedToday" class="fw-bold text-dark">0</h3>
                         <p class="text-muted mb-0">Completed Today</p>
                     </div>
                 </div>
@@ -73,7 +86,7 @@
                         <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="bicycle-outline" size="large" class="text-white"></ion-icon>
                         </div>
-                        <h3 class="fw-bold text-dark">0</h3>
+                        <h3 id="ddInTransit" class="fw-bold text-dark">0</h3>
                         <p class="text-muted mb-0">In Transit</p>
                     </div>
                 </div>
@@ -85,7 +98,7 @@
                         <div class="bg-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="cash-outline" size="large" class="text-white"></ion-icon>
                         </div>
-                        <h3 class="fw-bold text-dark">$0</h3>
+                        <h3 id="ddEarningsToday" class="fw-bold text-dark">$0</h3>
                         <p class="text-muted mb-0">Earnings Today</p>
                     </div>
                 </div>
@@ -100,7 +113,7 @@
                         {% if user.role == 'admin' %}
                             All Orders
                         {% else %}
-                            Available Orders
+                            Ready for Pickup
                         {% endif %}
                     </h2>
                 </div>
@@ -168,14 +181,24 @@
                                             Update Status
                                         </button>
                                     {% else %}
-                                        <button class="btn btn-success btn-sm">
-                                            <ion-icon name="checkmark-outline" class="me-1"></ion-icon>
-                                            Accept Delivery
-                                        </button>
-                                        <button class="btn btn-outline-primary btn-sm">
-                                            <ion-icon name="call-outline" class="me-1"></ion-icon>
-                                            Contact Customer
-                                        </button>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            {% if order.status == 'ready' %}
+                                                <button class="btn btn-success" data-accept-order="{{ order.id }}">
+                                                    <ion-icon name="checkmark-outline" class="me-1"></ion-icon>
+                                                    Accept Delivery
+                                                </button>
+                                            {% elif order.status == 'picked_up' %}
+                                                <button class="btn btn-warning" data-update-status data-status="in_transit" data-order-id="{{ order.id }}">
+                                                    <ion-icon name="bicycle-outline" class="me-1"></ion-icon>
+                                                    On the Way
+                                                </button>
+                                            {% elif order.status == 'in_transit' %}
+                                                <button class="btn btn-success" data-update-status data-status="delivered" data-order-id="{{ order.id }}">
+                                                    <ion-icon name="checkmark-done-outline" class="me-1"></ion-icon>
+                                                    Delivered
+                                                </button>
+                                            {% endif %}
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -283,4 +306,162 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
 }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Poll for new/updated orders every 15 seconds for delivery role
+    const role = '{{ user.role }}';
+    const audioEl = document.getElementById('newOrderSound');
+    const autoToggle = document.getElementById('autoRefreshToggle');
+    const refreshBtn = document.getElementById('refreshOrdersBtn');
+    let pollTimer = null;
+
+    function startPolling() {
+        if (pollTimer) return;
+        pollTimer = setInterval(pollOnce, 15000);
+    }
+
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    }
+
+    function pollOnce() {
+        fetch('{% url "orders:delivery_orders_poll" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(r => r.json())
+          .then(data => {
+              if (data.success) {
+                  const countEl = document.querySelector('[data-orders-count]');
+                  const currentCount = parseInt(countEl?.getAttribute('data-orders-count') || '0');
+                  const newCount = data.orders.length;
+                  if (newCount !== currentCount) {
+                      if (newCount > currentCount && audioEl) {
+                          try { audioEl.currentTime = 0; audioEl.play(); } catch (e) {}
+                      }
+                      window.location.reload();
+                  }
+              }
+          })
+          .catch(() => {});
+    }
+
+    if (role === 'delivery' || role === 'admin') {
+        if (autoToggle) {
+            autoToggle.addEventListener('change', function() {
+                if (this.checked) startPolling(); else stopPolling();
+            });
+        }
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                pollOnce();
+            });
+        }
+        if (!autoToggle || autoToggle.checked) startPolling();
+        // Initial stats load
+        fetch('{% url "orders:delivery_stats" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(r=>r.json())
+          .then(d=>{
+            if (d.success) {
+                const s = d.stats||{};
+                const set = (id,v)=>{ const el = document.getElementById(id); if (el) el.textContent = v; };
+                set('ddPending', s.pending||0);
+                set('ddCompletedToday', s.completed_today||0);
+                set('ddInTransit', s.in_transit||0);
+                set('ddEarningsToday', '$'+(parseFloat(s.earnings_today)||0).toFixed(2));
+            }
+          })
+          .catch(()=>{});
+    }
+
+    // Delegate Accept Delivery button clicks
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-accept-order]');
+        if (!btn) return;
+        const orderId = btn.getAttribute('data-accept-order');
+        fetch('{% url "orders:delivery_accept_order" 0 %}'.replace('/0/', '/' + orderId + '/'), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to accept order');
+            }
+        })
+        .catch(() => alert('Failed to accept order'));
+    });
+    document.body.addEventListener('click', function(e){
+        const btn = e.target.closest('[data-update-status]');
+        if (!btn) return;
+        const orderId = btn.getAttribute('data-order-id');
+        const newStatus = btn.getAttribute('data-status');
+        fetch('{% url "orders:delivery_update_status" 0 %}'.replace('/0/', '/' + orderId + '/'), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(r=>r.json())
+        .then(d=>{
+            if (d.success) { window.location.reload(); }
+            else { alert(d.error || 'Failed to update status'); }
+        })
+        .catch(()=> alert('Failed to update status'));
+    });
+});
+</script>
+<audio id="newOrderSound" preload="auto">
+    <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAA..." type="audio/mpeg">
+</audio>
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="fw-bold text-dark mb-4">Previous Deliveries</h2>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead><tr><th>Order</th><th>Customer</th><th>Restaurant</th><th>Total</th><th>Delivered At</th></tr></thead>
+                                <tbody id="deliveryHistoryBody"><tr><td colspan="5" class="text-center py-3 text-muted">Loading...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function(){
+        fetch('{% url "orders:delivery_history" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+          .then(r=>r.json())
+          .then(d=>{
+              const body = document.getElementById('deliveryHistoryBody');
+              if (!body) return;
+              if (!d.success) { body.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load</td></tr>'; return; }
+              const rows = (d.orders||[]).map(o=>`<tr>
+                <td><span class="fw-bold">#${o.id}</span></td>
+                <td>${o.user||'-'}</td>
+                <td>${o.restaurant||'-'}</td>
+                <td class="fw-bold text-success">$${(parseFloat(o.total_amount)||0).toFixed(2)}</td>
+                <td><small class="text-muted">${o.updated_at}</small></td>
+              </tr>`).join('');
+              body.innerHTML = rows || '<tr><td colspan="5" class="text-center py-3 text-muted">No deliveries yet</td></tr>';
+          })
+          .catch(()=>{
+              const body = document.getElementById('deliveryHistoryBody');
+              if (body) body.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Network error</td></tr>';
+          });
+    });
+    </script>
+</section>
 {% endblock %}

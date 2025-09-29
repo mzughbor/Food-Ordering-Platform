@@ -22,6 +22,9 @@ class Restaurant(models.Model):
     email = models.EmailField(blank=True, default='', help_text='Restaurant email')
     opening_hours = models.CharField(max_length=100, blank=True, default='Mon-Sun: 9:00 AM - 10:00 PM', help_text='Restaurant opening hours')
     
+    # Admin-managed overall rating (0.0 – 5.0)
+    overall_rating = models.FloatField(default=0.0, help_text='Overall star rating (0.0 to 5.0)')
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

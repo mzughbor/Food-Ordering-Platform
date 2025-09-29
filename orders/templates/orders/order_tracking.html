@@ -192,6 +192,29 @@
                 </div>
             </div>
 
+            {% if is_restaurant_owner and order.status == 'preparing' %}
+            <!-- Restaurant Owner Controls -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0 fw-bold">
+                        <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
+                        Restaurant Action Required
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <ion-icon name="information-circle-outline" class="me-2"></ion-icon>
+                        <strong>Order is being prepared.</strong> Mark as ready when the meal is finished and ready for pickup.
+                    </div>
+                    <button id="markReadyBtn" class="btn btn-success btn-lg">
+                        <ion-icon name="checkmark-circle-outline" class="me-2"></ion-icon>
+                        Mark Order as Ready for Pickup
+                    </button>
+                    <div id="statusMessage" class="mt-3"></div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Order Summary -->
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
@@ -224,10 +247,12 @@
                                     <ion-icon name="home-outline" class="me-1"></ion-icon>
                                     Back to Home
                                 </a>
+                                {% if not is_restaurant_owner %}
                                 <a href="{% url 'orders:cart' %}" class="btn btn-primary">
                                     <ion-icon name="cart-outline" class="me-1"></ion-icon>
                                     View Cart
                                 </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -322,4 +347,68 @@
     background-color: #dc3545 !important;
 }
 </style>
+
+{% if is_restaurant_owner and order.status == 'preparing' %}
+<!-- Add CSRF token for JavaScript -->
+{% csrf_token %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const markReadyBtn = document.getElementById('markReadyBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    
+    if (markReadyBtn) {
+        markReadyBtn.addEventListener('click', function() {
+            const orderId = {{ order.id }};
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Disable button and show loading state
+            markReadyBtn.disabled = true;
+            markReadyBtn.innerHTML = '<ion-icon name="hourglass-outline" class="me-2"></ion-icon>Updating...';
+            
+            fetch(`/orders/restaurant-update-status/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    status: 'ready'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusMessage.innerHTML = `
+                        <div class="alert alert-success">
+                            <ion-icon name="checkmark-circle-outline" class="me-2"></ion-icon>
+                            Order marked as ready! Delivery personnel will be notified.
+                        </div>
+                    `;
+                    markReadyBtn.style.display = 'none';
+                    
+                    // Refresh page after 2 seconds to show updated status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            })
+            .catch(error => {
+                statusMessage.innerHTML = `
+                    <div class="alert alert-danger">
+                        <ion-icon name="alert-circle-outline" class="me-2"></ion-icon>
+                        Error: ${error.message}
+                    </div>
+                `;
+                // Re-enable button
+                markReadyBtn.disabled = false;
+                markReadyBtn.innerHTML = '<ion-icon name="checkmark-circle-outline" class="me-2"></ion-icon>Mark Order as Ready for Pickup';
+            });
+        });
+    }
+});
+</script>
+{% endif %}
+
 {% endblock %}

@@ -22,10 +22,14 @@
                         <div class="d-flex align-items-center mb-2">
                             <div class="rating me-2">
                                 {% for i in "12345" %}
-                                    <ion-icon name="star" class="text-warning"></ion-icon>
+                                    {% if forloop.counter <= restaurant.overall_rating %}
+                                        <ion-icon name="star" class="text-warning"></ion-icon>
+                                    {% else %}
+                                        <ion-icon name="star-outline" class="text-warning"></ion-icon>
+                                    {% endif %}
                                 {% endfor %}
                             </div>
-                            <span class="text-muted">({{ avg_rating }})</span>
+                            <span class="text-muted">({{ restaurant.overall_rating|default:0|floatformat:1 }})</span>
                             <span class="text-muted ms-3">{{ total_orders }} orders</span>
                         </div>
                         {% if restaurant.location %}
@@ -163,7 +167,7 @@
                                 <ion-icon name="star-outline" class="text-warning me-2"></ion-icon>
                                 <div>
                                     <small class="text-muted">Rating</small>
-                                    <p class="mb-0 fw-bold">{{ avg_rating }}/5.0</p>
+                                    <p class="mb-0 fw-bold">{{ restaurant.overall_rating|default:0|floatformat:1 }}/5.0</p>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center mb-3">

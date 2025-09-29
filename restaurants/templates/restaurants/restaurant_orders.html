@@ -87,15 +87,18 @@
                                             <span class="fw-bold text-success">${{ order.total_amount }}</span>
                                         </td>
                                         <td>
-                                            {% if order.status == 'pending' %}
-                                                <span class="badge bg-warning">Pending</span>
-                                            {% elif order.status == 'confirmed' %}
-                                                <span class="badge bg-primary">Confirmed</span>
-                                            {% elif order.status == 'delivered' %}
-                                                <span class="badge bg-success">Delivered</span>
-                                            {% elif order.status == 'cancelled' %}
-                                                <span class="badge bg-danger">Cancelled</span>
-                                            {% endif %}
+                                            <span id="status-{{ order.id }}" class="badge 
+                                                {% if order.status == 'pending' %}bg-warning
+                                                {% elif order.status == 'confirmed' %}bg-primary
+                                                {% elif order.status == 'preparing' %}bg-info
+                                                {% elif order.status == 'ready' %}bg-success
+                                                {% elif order.status == 'picked_up' %}bg-secondary
+                                                {% elif order.status == 'in_transit' %}bg-secondary
+                                                {% elif order.status == 'delivered' %}bg-success
+                                                {% elif order.status == 'cancelled' %}bg-danger
+                                                {% endif %}">
+                                                {{ order.get_status_display }}
+                                            </span>
                                         </td>
                                         <td>
                                             <div>
@@ -116,11 +119,22 @@
                                                         title="Confirm Order">
                                                     <ion-icon name="checkmark-outline"></ion-icon>
                                                 </button>
+                                                <button class="btn btn-outline-danger" 
+                                                        onclick="updateOrderStatus({{ order.id }}, 'cancelled')" 
+                                                        title="Cancel Order">
+                                                    <ion-icon name="close-outline"></ion-icon>
+                                                </button>
                                                 {% elif order.status == 'confirmed' %}
-                                                <button class="btn btn-outline-primary" 
-                                                        onclick="updateOrderStatus({{ order.id }}, 'delivered')" 
-                                                        title="Mark as Delivered">
-                                                    <ion-icon name="car-outline"></ion-icon>
+                                                <button class="btn btn-outline-warning" 
+                                                        onclick="updateOrderStatus({{ order.id }}, 'preparing')" 
+                                                        title="Start Preparing">
+                                                    <ion-icon name="restaurant-outline"></ion-icon>
+                                                </button>
+                                                {% elif order.status == 'preparing' %}
+                                                <button class="btn btn-outline-success" 
+                                                        onclick="updateOrderStatus({{ order.id }}, 'ready')" 
+                                                        title="Mark as Ready">
+                                                    <ion-icon name="checkmark-circle-outline"></ion-icon>
                                                 </button>
                                                 {% endif %}
                                             </div>
@@ -197,33 +211,177 @@
     </div>
 </div>
 
+<!-- Add CSRF token for JavaScript -->
+{% csrf_token %}
+
 <!-- Order Management Scripts -->
 <script>
+
 function viewOrderDetails(orderId) {
-    // This would typically fetch order details via AJAX
-    // For now, we'll show a placeholder
+    // Show loading state
     document.getElementById('orderDetailsContent').innerHTML = `
         <div class="text-center py-4">
             <ion-icon name="hourglass-outline" style="font-size: 48px; color: #ccc;" class="mb-3"></ion-icon>
-            <p class="text-muted">Order details for order #${orderId} would be loaded here.</p>
+            <p class="text-muted">Loading order details...</p>
         </div>
     `;
     
     const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
     modal.show();
+    
+    // Fetch order details
+    fetch(`/restaurants/order-details/${orderId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const order = data.order;
+                let itemsHtml = '';
+                
+                order.items.forEach(item => {
+                    itemsHtml += `
+                        <tr>
+                            <td>${item.meal_name}</td>
+                            <td class="text-center">${item.quantity}</td>
+                            <td class="text-end">$${item.price.toFixed(2)}</td>
+                            <td class="text-end">$${item.total.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                document.getElementById('orderDetailsContent').innerHTML = `
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-2">Customer Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> ${order.customer_name}</p>
+                            <p class="mb-1"><strong>Email:</strong> ${order.customer_email}</p>
+                            <p class="mb-0"><strong>Order Date:</strong> ${order.created_at}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-muted mb-2">Order Status</h6>
+                            <p class="mb-1"><strong>Current Status:</strong> <span class="badge bg-primary">${order.status_display}</span></p>
+                            <p class="mb-1"><strong>Total Amount:</strong> $${order.total_amount.toFixed(2)}</p>
+                            <p class="mb-0"><strong>Last Updated:</strong> ${order.updated_at}</p>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold text-muted mb-3">Order Items</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${itemsHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <th colspan="3" class="text-end">Total:</th>
+                                    <th class="text-end">$${order.total_amount.toFixed(2)}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+            } else {
+                document.getElementById('orderDetailsContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <ion-icon name="alert-circle-outline" class="me-2"></ion-icon>
+                        Error: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('orderDetailsContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <ion-icon name="alert-circle-outline" class="me-2"></ion-icon>
+                    Error loading order details: ${error.message}
+                </div>
+            `;
+        });
 }
 
 function updateOrderStatus(orderId, newStatus) {
-    if (confirm(`Are you sure you want to update this order to ${newStatus}?`)) {
-        // This would typically send an AJAX request to update the order status
-        // For now, we'll just show a success message
-        alert(`Order #${orderId} status updated to ${newStatus}!`);
+    const statusText = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+    
+    if (confirm(`Are you sure you want to update this order to ${statusText}?`)) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
-        // In a real implementation, you would:
-        // 1. Send AJAX request to update order status
-        // 2. Update the UI to reflect the new status
-        // 3. Show success/error messages
+        fetch(`/restaurants/update-order-status/${orderId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                status: newStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the status badge
+                const statusElement = document.getElementById(`status-${orderId}`);
+                if (statusElement) {
+                    statusElement.textContent = data.status_display;
+                    
+                    // Update badge color
+                    statusElement.className = 'badge ' + getStatusBadgeClass(data.status);
+                }
+                
+                // Show success message
+                showAlert('success', `Order #${orderId} status updated to ${data.status_display}!`);
+                
+                // Refresh page after 2 seconds to update action buttons
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showAlert('danger', `Error: ${data.error}`);
+            }
+        })
+        .catch(error => {
+            showAlert('danger', `Error updating order status: ${error.message}`);
+        });
     }
+}
+
+function getStatusBadgeClass(status) {
+    const statusClasses = {
+        'pending': 'bg-warning',
+        'confirmed': 'bg-primary',
+        'preparing': 'bg-info',
+        'ready': 'bg-success',
+        'picked_up': 'bg-secondary',
+        'in_transit': 'bg-secondary',
+        'delivered': 'bg-success',
+        'cancelled': 'bg-danger'
+    };
+    return statusClasses[status] || 'bg-secondary';
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
 }
 </script>
 

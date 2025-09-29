@@ -331,14 +331,33 @@ def toggle_restaurant_status(request, restaurant_id):
 
 
 @login_required
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def edit_meal(request, meal_id):
-    """Edit meal information"""
+    """Get or update meal information"""
     if request.user.role != 'admin':
         return JsonResponse({'success': False, 'error': 'Admin access required'})
     
     try:
         meal = get_object_or_404(Meal, id=meal_id)
+        
+        # GET: return meal data for editing
+        if request.method == 'GET':
+            return JsonResponse({
+                'success': True,
+                'meal': {
+                    'id': meal.id,
+                    'name': meal.name,
+                    'price': float(meal.price),
+                    'description': meal.description or '',
+                    'is_available': meal.is_available,
+                    'restaurant': {
+                        'id': meal.restaurant.id if meal.restaurant else None,
+                        'name': meal.restaurant.name if meal.restaurant else 'N/A'
+                    }
+                }
+            })
+        
+        # POST: update meal
         data = json.loads(request.body)
         
         # Update meal fields
@@ -360,6 +379,119 @@ def edit_meal(request, meal_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+
+@login_required
+@require_http_methods(["GET"])
+@admin_required
+def meal_list(request):
+    """Return JSON list of meals for admin table."""
+    try:
+        meals_qs = Meal.objects.select_related('restaurant').all()
+        restaurant_id = request.GET.get('restaurant_id')
+        if restaurant_id:
+            meals_qs = meals_qs.filter(restaurant_id=restaurant_id)
+        meals = meals_qs.order_by('-id')
+        data = []
+        for meal in meals:
+            data.append({
+                'id': meal.id,
+                'name': meal.name,
+                'price': float(meal.price),
+                'is_available': meal.is_available,
+                'restaurant': {
+                    'id': meal.restaurant.id if meal.restaurant else None,
+                    'name': meal.restaurant.name if meal.restaurant else 'N/A'
+                }
+            })
+        return JsonResponse({'success': True, 'meals': data})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+@require_http_methods(["GET"])
+@admin_required
+def meal_analytics(request):
+    """Return basic analytics for meals (counts, avg price, top by orders/revenue)."""
+    try:
+        from django.db.models import Count, Sum, Avg
+        from orders.models import OrderItem
+        
+        total_meals = Meal.objects.count()
+        available_meals = Meal.objects.filter(is_available=True).count()
+        avg_price = Meal.objects.aggregate(avg=Avg('price'))['avg'] or 0
+        
+        # Top meals by order count and revenue
+        top_by_orders_qs = (
+            OrderItem.objects
+            .values('meal__id', 'meal__name')
+            .annotate(times_ordered=Count('id'), revenue=Sum('price'))
+            .order_by('-times_ordered')[:5]
+        )
+        top_by_orders = [
+            {
+                'id': row['meal__id'],
+                'name': row['meal__name'],
+                'times_ordered': row['times_ordered'],
+                'revenue': float(row['revenue'] or 0),
+            }
+            for row in top_by_orders_qs
+        ]
+        
+        return JsonResponse({
+            'success': True,
+            'analytics': {
+                'total_meals': total_meals,
+                'available_meals': available_meals,
+                'avg_price': float(avg_price),
+                'top_meals': top_by_orders,
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_http_methods(["POST"])
+@admin_required
+def create_meal(request):
+    """Create a new meal with image and full details."""
+    try:
+        # Handle both JSON and multipart (FormData)
+        if request.content_type.startswith('application/json'):
+            data = json.loads(request.body)
+            files = {}
+        else:
+            data = request.POST
+            files = request.FILES
+        
+        # Validate required fields
+        required = ['name', 'price', 'restaurant_id']
+        for f in required:
+            if not data.get(f):
+                return JsonResponse({'success': False, 'error': f'{f} is required'})
+        
+        restaurant = get_object_or_404(Restaurant, id=data.get('restaurant_id'))
+        
+        meal = Meal(
+            name=data.get('name'),
+            description=data.get('description', ''),
+            price=data.get('price'),
+            is_available=data.get('is_available', 'true') in ['true', 'True', True, 'on', '1'],
+            restaurant=restaurant,
+        )
+        # Optional fields
+        if data.get('prep_time_min') is not None:
+            meal.prep_time_min = int(data.get('prep_time_min'))
+        if data.get('prep_time_max') is not None:
+            meal.prep_time_max = int(data.get('prep_time_max'))
+        if 'image' in files:
+            meal.image = files['image']
+        
+        meal.save()
+        
+        return JsonResponse({'success': True, 'meal_id': meal.id, 'message': 'Meal created successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 @login_required
 @require_http_methods(["POST"])
@@ -570,6 +702,62 @@ def get_platform_settings(request):
         return JsonResponse({'success': False, 'error': str(e)})
 
 
+@login_required
+@require_http_methods(["GET"])
+@admin_required
+def user_analytics(request):
+    """Return basic analytics for users (counts by role and status)."""
+    try:
+        from django.db.models import Count
+        total_users = User.objects.count()
+        active_users = User.objects.filter(is_active=True).count()
+        inactive_users = total_users - active_users
+        by_role = list(User.objects.values('role').annotate(count=Count('id')))
+        return JsonResponse({
+            'success': True,
+            'analytics': {
+                'total_users': total_users,
+                'active_users': active_users,
+                'inactive_users': inactive_users,
+                'by_role': by_role,
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+@require_http_methods(["GET"])
+@admin_required
+def platform_analytics(request):
+    """Aggregate top-level analytics across the platform."""
+    try:
+        from django.db.models import Sum, Avg, Count
+        from orders.models import Order
+        from meals.models import Meal
+        from restaurants.models import Restaurant
+        
+        total_users = User.objects.count()
+        total_restaurants = Restaurant.objects.count()
+        total_meals = Meal.objects.count()
+        total_orders = Order.objects.count()
+        total_revenue = Order.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+        avg_order_value = Order.objects.aggregate(avg=Avg('total_amount'))['avg'] or 0
+        
+        return JsonResponse({
+            'success': True,
+            'analytics': {
+                'total_users': total_users,
+                'total_restaurants': total_restaurants,
+                'total_meals': total_meals,
+                'total_orders': total_orders,
+                'total_revenue': float(total_revenue),
+                'avg_order_value': float(avg_order_value),
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
 # Restaurant Management Endpoints
 @login_required
 @require_http_methods(["GET"])
@@ -654,7 +842,7 @@ def restaurant_analytics(request):
         
         # Basic counts
         total_restaurants = Restaurant.objects.count()
-        active_restaurants = Restaurant.objects.filter(is_active=True).count()
+        active_restaurants = Restaurant.objects.count()  # All restaurants are considered active
         
         # Order statistics
         total_orders = Order.objects.count()
@@ -669,20 +857,42 @@ def restaurant_analytics(request):
         
         # Top performing restaurants
         top_restaurants = Restaurant.objects.annotate(
-            orders_count=Count('order'),
-            total_revenue=Sum('order__total')
+            orders_count=Count('orders'),
+            total_revenue=Sum('orders__total_amount')
         ).order_by('-orders_count')[:5]
         
         top_restaurants_data = []
         for restaurant in top_restaurants:
             top_restaurants_data.append({
+                'id': restaurant.id,
                 'name': restaurant.name,
                 'location': restaurant.location,
                 'orders_count': restaurant.orders_count or 0,
                 'revenue': float(restaurant.total_revenue or 0),
-                'rating': 4.5  # Placeholder - you can add rating system later
+                'rating': getattr(restaurant, 'overall_rating', 0.0) if hasattr(restaurant, 'overall_rating') else 0.0
             })
         
+        # Restaurants over time (last 14 days)
+        from django.utils import timezone
+        from datetime import timedelta
+        end_date = timezone.now().date()
+        start_date = end_date - timedelta(days=13)
+        buckets = {}
+        for i in range(14):
+            d = start_date + timedelta(days=i)
+            buckets[d.isoformat()] = {'date': d.isoformat(), 'restaurants': 0}
+        created_daily = (
+            Restaurant.objects
+            .filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
+            .values('created_at__date')
+            .annotate(count=Count('id'))
+        )
+        for row in created_daily:
+            key = row['created_at__date'].isoformat()
+            if key in buckets:
+                buckets[key]['restaurants'] = row['count'] or 0
+        restaurants_by_day = [buckets[k] for k in sorted(buckets.keys())]
+
         return JsonResponse({
             'success': True,
             'analytics': {
@@ -690,7 +900,8 @@ def restaurant_analytics(request):
                 'active_restaurants': active_restaurants,
                 'total_orders': total_orders,
                 'avg_order_value': round(avg_order_value, 2),
-                'top_restaurants': top_restaurants_data
+                'top_restaurants': top_restaurants_data,
+                'restaurants_by_day': restaurants_by_day
             }
         })
     except Exception as e:
@@ -737,6 +948,34 @@ def bulk_delete_restaurants(request):
             'success': True,
             'message': f'{deleted_count} restaurants deleted successfully'
         })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+@require_http_methods(["POST"])
+@admin_required
+def update_restaurant_rating(request, restaurant_id):
+    """Update overall_rating for a restaurant (0.0 - 5.0)."""
+    try:
+        restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+        
+        # Check if the field exists in the database
+        if not hasattr(restaurant, 'overall_rating'):
+            return JsonResponse({
+                'success': False, 
+                'error': 'overall_rating field not available. Please run migrations first.'
+            })
+        
+        data = json.loads(request.body or '{}')
+        rating = float(data.get('rating', 0))
+        if rating < 0:
+            rating = 0.0
+        if rating > 5:
+            rating = 5.0
+        restaurant.overall_rating = rating
+        restaurant.save(update_fields=['overall_rating'])
+        return JsonResponse({'success': True, 'rating': restaurant.overall_rating})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
@@ -814,5 +1053,162 @@ def create_user(request):
         
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+# Order Management Endpoints
+@login_required
+@require_http_methods(["GET"])
+@admin_required
+def order_list(request):
+    """Get list of all orders"""
+    try:
+        orders = Order.objects.select_related('user', 'restaurant').prefetch_related('items').all().order_by('-created_at')
+        
+        orders_data = []
+        for order in orders:
+            orders_data.append({
+                'id': order.id,
+                'user': {
+                    'username': order.user.username,
+                    'email': order.user.email
+                },
+                'restaurant': {
+                    'name': order.restaurant.name if order.restaurant else 'N/A',
+                    'location': order.restaurant.location if order.restaurant else 'N/A'
+                },
+                'total_amount': float(order.total_amount),
+                'status': order.status,
+                'created_at': order.created_at.isoformat(),
+                'items_count': order.items.count()
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'orders': orders_data
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+@require_http_methods(["GET"])
+@admin_required
+def order_analytics(request):
+    """Get order analytics data"""
+    try:
+        from django.db.models import Count, Sum, Avg
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Basic stats
+        total_orders = Order.objects.count()
+        total_revenue = Order.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+        avg_order_value = Order.objects.aggregate(avg=Avg('total_amount'))['avg'] or 0
+        
+        # Completion rate (delivered orders / total orders)
+        delivered_orders = Order.objects.filter(status='delivered').count()
+        completion_rate = (delivered_orders / total_orders * 100) if total_orders > 0 else 0
+        
+        # Top restaurants by orders and revenue
+        top_restaurants = Restaurant.objects.annotate(
+            orders_count=Count('orders'),
+            revenue=Sum('orders__total_amount')
+        ).filter(orders_count__gt=0).order_by('-orders_count')[:5]
+        
+        top_restaurants_data = []
+        for restaurant in top_restaurants:
+            top_restaurants_data.append({
+                'name': restaurant.name,
+                'location': restaurant.location,
+                'orders_count': restaurant.orders_count,
+                'revenue': float(restaurant.revenue or 0)
+            })
+        
+        # Recent orders
+        recent_orders = Order.objects.select_related('user', 'restaurant').order_by('-created_at')[:10]
+        recent_orders_data = []
+        for order in recent_orders:
+            recent_orders_data.append({
+                'id': order.id,
+                'user': {
+                    'username': order.user.username
+                },
+                'restaurant': {
+                    'name': order.restaurant.name if order.restaurant else 'N/A'
+                },
+                'total_amount': float(order.total_amount),
+                'status': order.status,
+                'created_at': order.created_at.isoformat()
+            })
+
+        # Order status distribution
+        status_qs = (
+            Order.objects
+            .values('status')
+            .annotate(count=Count('id'))
+        )
+        status_distribution = []
+        for row in status_qs:
+            status_distribution.append({'status': row['status'], 'count': row['count'] or 0})
+
+        # Platform growth over time (last 14 days)
+        end_date = timezone.now().date()
+        start_date = end_date - timedelta(days=13)
+        # Initialize buckets
+        buckets = {}
+        for i in range(14):
+            d = start_date + timedelta(days=i)
+            k = d.isoformat()
+            buckets[k] = {'date': k, 'orders': 0, 'revenue': 0.0}
+        # Aggregate
+        daily = (
+            Order.objects
+            .filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
+            .values('created_at__date')
+            .annotate(orders_count=Count('id'), revenue_sum=Sum('total_amount'))
+        )
+        for row in daily:
+            key = row['created_at__date'].isoformat()
+            if key in buckets:
+                buckets[key]['orders'] = row['orders_count'] or 0
+                buckets[key]['revenue'] = float(row['revenue_sum'] or 0)
+        orders_by_day = [buckets[k] for k in sorted(buckets.keys())]
+        
+        return JsonResponse({
+            'success': True,
+            'analytics': {
+                'total_orders': total_orders,
+                'total_revenue': float(total_revenue),
+                'avg_order_value': float(avg_order_value),
+                'completion_rate': round(completion_rate, 1),
+                'top_restaurants': top_restaurants_data,
+                'recent_orders': recent_orders_data,
+                'status_distribution': status_distribution,
+                'orders_by_day': orders_by_day
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@login_required
+@require_http_methods(["POST"])
+@admin_required
+def bulk_delete_orders(request):
+    """Bulk delete orders"""
+    try:
+        data = json.loads(request.body)
+        order_ids = data.get('order_ids', [])
+        
+        orders = Order.objects.filter(id__in=order_ids)
+        deleted_count = orders.count()
+        orders.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'{deleted_count} orders deleted successfully'
+        })
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
