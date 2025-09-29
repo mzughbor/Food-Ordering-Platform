@@ -368,25 +368,79 @@ function getStatusBadgeClass(status) {
 function showAlert(type, message) {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px;';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; max-width: 400px; animation: slideInRight 0.3s ease;';
     alertDiv.innerHTML = `
+        <ion-icon name="${getAlertIcon(type)}" class="me-2"></ion-icon>
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
     
     document.body.appendChild(alertDiv);
     
-    // Auto-remove after 5 seconds
+    // Auto-remove after 5 seconds with animation
     setTimeout(() => {
         if (alertDiv.parentNode) {
-            alertDiv.remove();
+            alertDiv.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 300);
         }
     }, 5000);
 }
+
+function getAlertIcon(type) {
+    const icons = {
+        'success': 'checkmark-circle-outline',
+        'danger': 'alert-circle-outline',
+        'warning': 'warning-outline',
+        'info': 'information-circle-outline'
+    };
+    return icons[type] || 'information-circle-outline';
+}
+
+// Enhanced loading state for buttons
+function setButtonLoading(button, isLoading, originalText) {
+    if (isLoading) {
+        button.disabled = true;
+        button.setAttribute('data-original-text', originalText || button.innerHTML);
+        button.innerHTML = '<ion-icon name="hourglass-outline" class="me-2"></ion-icon>Processing...';
+        button.style.minWidth = button.offsetWidth + 'px';
+    } else {
+        button.disabled = false;
+        button.innerHTML = button.getAttribute('data-original-text') || originalText;
+        button.style.minWidth = '';
+    }
+}
+
+// Enhanced view order details with better animations
+function enhancedViewOrderDetails(orderId) {
+    const modal = document.getElementById('orderDetailsModal');
+    const content = document.getElementById('orderDetailsContent');
+    
+    // Show loading with enhanced animation
+    content.innerHTML = `
+        <div class="text-center py-5">
+            <div class="loading-spinner mx-auto mb-3" style="width: 3rem; height: 3rem; border: 4px solid; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p class="text-muted mb-0">Loading order details...</p>
+        </div>
+    `;
+    
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+    
+    // Add entrance animation
+    modal.addEventListener('shown.bs.modal', () => {
+        modal.style.animation = 'fadeInUp 0.3s ease';
+    });
+}
 </script>
 
-<!-- Custom Sidebar Styling -->
+<!-- Custom Styling with Dark Mode Support -->
 <style>
+/* ============== LIGHT MODE STYLES ============== */
+
 /* Override Bootstrap list-group colors with our green theme */
 .list-group-item-action {
     color: #495057;
@@ -423,6 +477,502 @@ function showAlert(type, message) {
     border-color: #157347;
     color: white;
     box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.5);
+}
+
+/* Light mode enhancements */
+.table th {
+    font-weight: 600;
+    color: #495057;
+}
+
+.card {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.badge {
+    font-weight: 500;
+}
+
+/* ============== DARK MODE STYLES ============== */
+
+[data-bs-theme="dark"] {
+    /* Sidebar Dark Mode */
+    .list-group-item-action {
+        color: #adb5bd;
+        background-color: transparent;
+        border-color: #495057;
+    }
+
+    .list-group-item-action:hover {
+        background-color: rgba(25, 135, 84, 0.2);
+        color: #94d82d;
+        border-color: #94d82d;
+    }
+
+    .list-group-item-action:focus {
+        background-color: rgba(25, 135, 84, 0.2);
+        color: #94d82d;
+        border-color: #94d82d;
+        box-shadow: 0 0 0 0.2rem rgba(148, 216, 45, 0.25);
+    }
+
+    .list-group-item-action.active {
+        background-color: #94d82d;
+        border-color: #94d82d;
+        color: #000;
+        font-weight: 600;
+    }
+
+    .list-group-item-action.active:hover {
+        background-color: #7fb327;
+        border-color: #7fb327;
+        color: #000;
+    }
+
+    .list-group-item-action.active:focus {
+        background-color: #7fb327;
+        border-color: #7fb327;
+        color: #000;
+        box-shadow: 0 0 0 0.2rem rgba(148, 216, 45, 0.5);
+    }
+
+    /* Card Dark Mode */
+    .card {
+        background-color: #212529;
+        border-color: #495057;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+    }
+
+    .card-header {
+        background-color: #2c3136;
+        border-bottom-color: #495057;
+        color: #f8f9fa;
+    }
+
+    .card-body {
+        background-color: #212529;
+        color: #f8f9fa;
+    }
+
+    .card-footer {
+        background-color: #2c3136;
+        border-top-color: #495057;
+    }
+
+    /* Table Dark Mode */
+    .table {
+        --bs-table-bg: #212529;
+        --bs-table-color: #f8f9fa;
+        --bs-table-border-color: #495057;
+        --bs-table-hover-bg: #2c3136;
+        --bs-table-hover-color: #f8f9fa;
+    }
+
+    .table-light {
+        --bs-table-bg: #2c3136;
+        --bs-table-color: #f8f9fa;
+        --bs-table-border-color: #495057;
+    }
+
+    .table th {
+        color: #94d82d;
+        font-weight: 600;
+        border-bottom-color: #495057;
+    }
+
+    .table td {
+        border-bottom-color: #495057;
+    }
+
+    /* Badge Dark Mode Enhancements */
+    .badge.bg-light {
+        background-color: #495057 !important;
+        color: #f8f9fa !important;
+        border: 1px solid #6c757d;
+    }
+
+    .badge.bg-warning {
+        background-color: #fd7e14 !important;
+        color: #000 !important;
+    }
+
+    .badge.bg-success {
+        background-color: #94d82d !important;
+        color: #000 !important;
+    }
+
+    .badge.bg-info {
+        background-color: #0dcaf0 !important;
+        color: #000 !important;
+    }
+
+    .badge.bg-primary {
+        background-color: #0d6efd !important;
+        color: #fff !important;
+    }
+
+    .badge.bg-secondary {
+        background-color: #6c757d !important;
+        color: #fff !important;
+    }
+
+    .badge.bg-danger {
+        background-color: #dc3545 !important;
+        color: #fff !important;
+    }
+
+    /* Button Dark Mode */
+    .btn-outline-info {
+        color: #0dcaf0;
+        border-color: #0dcaf0;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: #000;
+    }
+
+    .btn-outline-success {
+        color: #94d82d;
+        border-color: #94d82d;
+    }
+
+    .btn-outline-success:hover {
+        background-color: #94d82d;
+        border-color: #94d82d;
+        color: #000;
+    }
+
+    .btn-outline-danger {
+        color: #dc3545;
+        border-color: #dc3545;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: #fff;
+    }
+
+    .btn-outline-warning {
+        color: #fd7e14;
+        border-color: #fd7e14;
+    }
+
+    .btn-outline-warning:hover {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
+        color: #000;
+    }
+
+    /* Pagination Dark Mode */
+    .pagination .page-link {
+        background-color: #2c3136;
+        border-color: #495057;
+        color: #94d82d;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #495057;
+        border-color: #6c757d;
+        color: #94d82d;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #94d82d;
+        border-color: #94d82d;
+        color: #000;
+        font-weight: 600;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        background-color: #212529;
+        border-color: #495057;
+        color: #6c757d;
+    }
+
+    /* Modal Dark Mode */
+    .modal-content {
+        background-color: #212529;
+        border-color: #495057;
+    }
+
+    .modal-header {
+        background-color: #2c3136;
+        border-bottom-color: #495057;
+        color: #f8f9fa;
+    }
+
+    .modal-body {
+        background-color: #212529;
+        color: #f8f9fa;
+    }
+
+    .modal-title {
+        color: #94d82d;
+    }
+
+    .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    /* Text Colors Dark Mode */
+    .text-dark {
+        color: #f8f9fa !important;
+    }
+
+    .text-muted {
+        color: #adb5bd !important;
+    }
+
+    .text-success {
+        color: #94d82d !important;
+    }
+
+    /* Alert Dark Mode */
+    .alert-success {
+        background-color: rgba(148, 216, 45, 0.1);
+        border-color: #94d82d;
+        color: #94d82d;
+    }
+
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+
+    .alert-warning {
+        background-color: rgba(253, 126, 20, 0.1);
+        border-color: #fd7e14;
+        color: #fd7e14;
+    }
+
+    .alert-info {
+        background-color: rgba(13, 202, 240, 0.1);
+        border-color: #0dcaf0;
+        color: #0dcaf0;
+    }
+
+    /* Empty State Dark Mode */
+    .text-center ion-icon {
+        color: #6c757d !important;
+    }
+
+    /* Transitions for smooth theme switching */
+    * {
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+    }
+}
+
+/* ============== RESPONSIVE DARK MODE ============== */
+
+@media (max-width: 768px) {
+    [data-bs-theme="dark"] .card {
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    [data-bs-theme="dark"] .table-responsive {
+        border-radius: 0.375rem;
+        border: 1px solid #495057;
+    }
+}
+
+/* ============== ANIMATION ENHANCEMENTS ============== */
+
+/* Smooth hover effects for dark mode */
+[data-bs-theme="dark"] .table-hover tbody tr:hover {
+    background-color: rgba(148, 216, 45, 0.1) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-bs-theme="dark"] .btn {
+    transition: all 0.3s ease;
+}
+
+[data-bs-theme="dark"] .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Loading animation for dark mode */
+[data-bs-theme="dark"] .loading-spinner {
+    border-color: #495057;
+    border-top-color: #94d82d;
+}
+
+/* ============== KEYFRAME ANIMATIONS ============== */
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes slideInRight {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(148, 216, 45, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(148, 216, 45, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(148, 216, 45, 0);
+    }
+}
+
+/* ============== LOADING SPINNER STYLES ============== */
+
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #94d82d;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+[data-bs-theme="dark"] .loading-spinner {
+    border-color: #495057;
+    border-top-color: #94d82d;
+}
+
+/* ============== ENHANCED HOVER EFFECTS ============== */
+
+.btn-group .btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-bs-theme="dark"] .btn-group .btn:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Button click effect */
+.btn:active {
+    transform: translateY(0) !important;
+    transition: transform 0.1s ease;
+}
+
+/* Enhanced table row hover effect */
+.table-hover tbody tr {
+    transition: all 0.3s ease;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(148, 216, 45, 0.05);
+    transform: translateX(4px);
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="dark"] .table-hover tbody tr:hover {
+    background-color: rgba(148, 216, 45, 0.1);
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Card hover effects */
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="dark"] .card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Badge animation */
+.badge {
+    transition: all 0.3s ease;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* Alert animations */
+.alert {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-bs-theme="dark"] .alert {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal animations */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Sidebar navigation enhancements */
+.list-group-item {
+    border: none !important;
+    margin-bottom: 2px;
+    border-radius: 0.5rem !important;
+}
+
+/* Focus states for accessibility */
+.btn:focus,
+.list-group-item:focus,
+.page-link:focus {
+    outline: 2px solid #94d82d;
+    outline-offset: 2px;
+}
+
+[data-bs-theme="dark"] .btn:focus,
+[data-bs-theme="dark"] .list-group-item:focus,
+[data-bs-theme="dark"] .page-link:focus {
+    outline-color: #94d82d;
 }
 </style>
 {% endblock %}
