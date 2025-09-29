@@ -51,7 +51,7 @@
         </div>
         <div class="row g-4 mb-5">
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center">
+                <div class="card border-0 shadow-sm text-center stats-card">
                     <div class="card-body">
                         <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="time-outline" size="large" class="text-white"></ion-icon>
@@ -69,7 +69,7 @@
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center">
+                <div class="card border-0 shadow-sm text-center stats-card">
                     <div class="card-body">
                         <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="checkmark-circle-outline" size="large" class="text-white"></ion-icon>
@@ -81,7 +81,7 @@
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center">
+                <div class="card border-0 shadow-sm text-center stats-card">
                     <div class="card-body">
                         <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="bicycle-outline" size="large" class="text-white"></ion-icon>
@@ -93,7 +93,7 @@
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center">
+                <div class="card border-0 shadow-sm text-center stats-card">
                     <div class="card-body">
                         <div class="bg-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="cash-outline" size="large" class="text-white"></ion-icon>
@@ -245,7 +245,7 @@
         
         <div class="row g-4">
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card border-0 shadow-sm text-center h-100 quick-action-card">
                     <div class="card-body">
                         <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="refresh-outline" size="large" class="text-white"></ion-icon>
@@ -257,7 +257,7 @@
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card border-0 shadow-sm text-center h-100 quick-action-card">
                     <div class="card-body">
                         <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="analytics-outline" size="large" class="text-white"></ion-icon>
@@ -269,7 +269,7 @@
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card border-0 shadow-sm text-center h-100 quick-action-card">
                     <div class="card-body">
                         <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="map-outline" size="large" class="text-white"></ion-icon>
@@ -281,7 +281,7 @@
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card border-0 shadow-sm text-center h-100 quick-action-card">
                     <div class="card-body">
                         <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                             <ion-icon name="settings-outline" size="large" class="text-white"></ion-icon>
@@ -296,7 +296,10 @@
 </section>
 {% endif %}
 
+<!-- Comprehensive Dark Mode Styling for Delivery Dashboard -->
 <style>
+/* ============== LIGHT MODE STYLES ============== */
+
 .order-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -304,6 +307,399 @@
 .order-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Enhanced stats cards */
+.stats-card {
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Quick action cards */
+.quick-action-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+/* ============== DARK MODE STYLES ============== */
+
+[data-bs-theme="dark"] {
+    /* Hero Section Dark Mode */
+    .bg-light-green {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2c3136 100%) !important;
+    }
+
+    /* Text Colors */
+    .text-dark {
+        color: #f8f9fa !important;
+    }
+
+    .text-muted {
+        color: #adb5bd !important;
+    }
+
+    .text-success {
+        color: #94d82d !important;
+    }
+
+    /* Background Sections */
+    .bg-light {
+        background-color: #1a1a1a !important;
+    }
+
+    .bg-white {
+        background-color: #212529 !important;
+    }
+
+    /* Cards Dark Mode */
+    .card {
+        background-color: #212529;
+        border-color: #495057;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.3);
+    }
+
+    .card-body {
+        color: #f8f9fa;
+    }
+
+    .card-title {
+        color: #f8f9fa;
+    }
+
+    /* Stats Cards Enhancement */
+    .stats-card {
+        background-color: #2c3136;
+        border-color: #495057;
+    }
+
+    .stats-card:hover {
+        background-color: #343a40;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        border-color: #94d82d;
+    }
+
+    .stats-card h3 {
+        color: #94d82d !important;
+    }
+
+    /* Order Cards Dark Mode */
+    .order-card {
+        background-color: #2c3136;
+        border-color: #495057;
+    }
+
+    .order-card:hover {
+        background-color: #343a40;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+        border-color: #94d82d;
+    }
+
+    .order-card .card-title {
+        color: #94d82d;
+    }
+
+    /* Badges Dark Mode */
+    .badge.bg-warning {
+        background-color: #fd7e14 !important;
+        color: #000 !important;
+    }
+
+    .badge.bg-info {
+        background-color: #0dcaf0 !important;
+        color: #000 !important;
+    }
+
+    .badge.bg-success {
+        background-color: #94d82d !important;
+        color: #000 !important;
+    }
+
+    .badge.bg-danger {
+        background-color: #dc3545 !important;
+        color: #fff !important;
+    }
+
+    /* Button Dark Mode */
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+    }
+
+    .btn-success {
+        background-color: #94d82d;
+        border-color: #94d82d;
+        color: #000;
+        font-weight: 600;
+    }
+
+    .btn-success:hover {
+        background-color: #7fb327;
+        border-color: #7fb327;
+        color: #000;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(148, 216, 45, 0.3);
+    }
+
+    .btn-warning {
+        background-color: #fd7e14;
+        border-color: #fd7e14;
+        color: #000;
+        font-weight: 600;
+    }
+
+    .btn-warning:hover {
+        background-color: #e56e02;
+        border-color: #d66500;
+        color: #000;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(253, 126, 20, 0.3);
+    }
+
+    .btn-outline-primary {
+        color: #0dcaf0;
+        border-color: #0dcaf0;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: #000;
+    }
+
+    /* Icon Circles Dark Mode */
+    .bg-warning.rounded-circle {
+        background-color: #fd7e14 !important;
+    }
+
+    .bg-success.rounded-circle {
+        background-color: #94d82d !important;
+    }
+
+    .bg-info.rounded-circle {
+        background-color: #0dcaf0 !important;
+    }
+
+    .bg-danger.rounded-circle {
+        background-color: #dc3545 !important;
+    }
+
+    .bg-primary.rounded-circle {
+        background-color: #0d6efd !important;
+    }
+
+    /* Empty State Dark Mode */
+    .bg-light-green.rounded-circle {
+        background: linear-gradient(135deg, #94d82d 0%, #7fb327 100%) !important;
+    }
+
+    /* Quick Actions Cards Dark Mode */
+    .quick-action-card {
+        background-color: #2c3136;
+        border-color: #495057;
+    }
+
+    .quick-action-card:hover {
+        background-color: #343a40;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        border-color: #94d82d;
+    }
+
+    .quick-action-card h6 {
+        color: #94d82d;
+    }
+
+    /* Table Dark Mode */
+    .table {
+        --bs-table-bg: #212529;
+        --bs-table-color: #f8f9fa;
+        --bs-table-border-color: #495057;
+        --bs-table-hover-bg: #2c3136;
+        --bs-table-hover-color: #f8f9fa;
+    }
+
+    .table th {
+        color: #94d82d;
+        font-weight: 600;
+        border-bottom-color: #495057;
+    }
+
+    .table td {
+        border-bottom-color: #495057;
+    }
+
+    .table-sm th,
+    .table-sm td {
+        color: #f8f9fa;
+    }
+
+    /* Form Controls Dark Mode */
+    .form-check-input:checked {
+        background-color: #94d82d;
+        border-color: #94d82d;
+    }
+
+    .form-check-input:focus {
+        border-color: #94d82d;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(148, 216, 45, 0.25);
+    }
+
+    .form-check-label {
+        color: #f8f9fa;
+    }
+
+    /* Animation enhancements */
+    .order-card,
+    .stats-card,
+    .quick-action-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .order-card::before,
+    .stats-card::before,
+    .quick-action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(148, 216, 45, 0.1), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .order-card:hover::before,
+    .stats-card:hover::before,
+    .quick-action-card:hover::before {
+        left: 100%;
+    }
+}
+
+/* ============== KEYFRAME ANIMATIONS ============== */
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(148, 216, 45, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(148, 216, 45, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(148, 216, 45, 0);
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ============== RESPONSIVE ENHANCEMENTS ============== */
+
+@media (max-width: 768px) {
+    [data-bs-theme="dark"] .order-card,
+    [data-bs-theme="dark"] .stats-card,
+    [data-bs-theme="dark"] .quick-action-card {
+        margin-bottom: 1rem;
+    }
+
+    [data-bs-theme="dark"] .table-responsive {
+        border-radius: 0.375rem;
+        border: 1px solid #495057;
+    }
+}
+
+/* ============== LOADING STATES ============== */
+
+.loading-shimmer {
+    background: linear-gradient(90deg, #2c3136 25%, #495057 50%, #2c3136 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+[data-bs-theme="dark"] .loading-shimmer {
+    background: linear-gradient(90deg, #212529 25%, #2c3136 50%, #212529 75%);
+    background-size: 200% 100%;
+}
+
+/* ============== ACCESSIBILITY ENHANCEMENTS ============== */
+
+[data-bs-theme="dark"] .btn:focus,
+[data-bs-theme="dark"] .card:focus {
+    outline: 2px solid #94d82d;
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    [data-bs-theme="dark"] .card {
+        border-width: 2px;
+    }
+    
+    [data-bs-theme="dark"] .btn {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    [data-bs-theme="dark"] .order-card,
+    [data-bs-theme="dark"] .stats-card,
+    [data-bs-theme="dark"] .quick-action-card,
+    [data-bs-theme="dark"] .btn {
+        transition: none;
+    }
+    
+    [data-bs-theme="dark"] .order-card::before,
+    [data-bs-theme="dark"] .stats-card::before,
+    [data-bs-theme="dark"] .quick-action-card::before {
+        display: none;
+    }
 }
 </style>
 <script>
