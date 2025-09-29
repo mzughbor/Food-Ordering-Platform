@@ -819,7 +819,7 @@ document.addEventListener('DOMContentLoaded', function() {
         acceptDeliveryBtn.setAttribute('data-original-text', acceptDeliveryBtn.innerHTML);
         acceptDeliveryBtn.addEventListener('click', function() {
             updateDeliveryStatus(
-                `/orders/accept/${{{ order.id }}}/`,
+                `/orders/accept/${{ order.id }}/`,
                 'Delivery accepted! Head to restaurant for pickup.',
                 acceptDeliveryBtn,
                 '<ion-icon name="hourglass-outline" class="me-2"></ion-icon>Accepting...'
@@ -832,7 +832,7 @@ document.addEventListener('DOMContentLoaded', function() {
         onTheWayBtn.setAttribute('data-original-text', onTheWayBtn.innerHTML);
         onTheWayBtn.addEventListener('click', function() {
             updateDeliveryStatus(
-                `/orders/update-status/${{{ order.id }}}/`,
+                `/orders/update-status/${{ order.id }}/`,
                 'Status updated! On the way to customer.',
                 onTheWayBtn,
                 '<ion-icon name="hourglass-outline" class="me-2"></ion-icon>Updating...'
@@ -846,7 +846,7 @@ document.addEventListener('DOMContentLoaded', function() {
         deliveredBtn.addEventListener('click', function() {
             if (confirm('Mark this order as delivered?')) {
                 updateDeliveryStatus(
-                    `/orders/update-status/${{{ order.id }}}/`,
+                    `/orders/update-status/${{ order.id }}/`,
                     'Order marked as delivered! Great job! 🎉',
                     deliveredBtn,
                     '<ion-icon name="hourglass-outline" class="me-2"></ion-icon>Delivering...'
