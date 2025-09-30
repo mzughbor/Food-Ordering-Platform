@@ -25,19 +25,35 @@ def dashboard(request):
 
 
 @login_required
-def restaurant_dashboard(request):
+def restaurant_dashboard(request, restaurant_id=None):
     """Detailed restaurant dashboard for owners and admins"""
     if request.user.role not in ['owner', 'admin']:
         messages.error(request, 'Access denied. Restaurant owner privileges required.')
         return redirect('users:home')
     
     # Get restaurant data
-    if request.user.role == 'admin':
-        restaurant = Restaurant.objects.first()
-        restaurants = Restaurant.objects.all()
+    if restaurant_id:
+        # Specific restaurant requested
+        if request.user.role == 'admin':
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+            restaurants = Restaurant.objects.all()
+        else:
+            restaurants = Restaurant.objects.filter(owner=request.user)
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id, owner=request.user)
     else:
-        restaurants = Restaurant.objects.filter(owner=request.user)
-        restaurant = restaurants.first() if restaurants.exists() else None
+        # Default behavior (for backward compatibility)
+        if request.user.role == 'admin':
+            # For admins, show restaurant selection if multiple restaurants exist
+            restaurants = Restaurant.objects.all()
+            if restaurants.count() > 1:
+                # Show restaurant selection page
+                context = {'restaurants': restaurants, 'action': 'dashboard'}
+                return render(request, 'restaurants/select_restaurant_for_action.html', context)
+            else:
+                restaurant = restaurants.first()
+        else:
+            restaurants = Restaurant.objects.filter(owner=request.user)
+            restaurant = restaurants.first() if restaurants.exists() else None
     
     # Get meals for the restaurant with pagination
     meals = []
@@ -68,17 +84,32 @@ def restaurant_dashboard(request):
 
 
 @login_required
-def manage_meals(request):
+def manage_meals(request, restaurant_id=None):
     """Manage meals for restaurant"""
     if request.user.role not in ['owner', 'admin']:
         messages.error(request, 'Access denied. Restaurant owner privileges required.')
         return redirect('users:home')
     
     # Get restaurant
-    if request.user.role == 'admin':
-        restaurant = Restaurant.objects.first()
+    if restaurant_id:
+        # Specific restaurant requested
+        if request.user.role == 'admin':
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+        else:
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id, owner=request.user)
     else:
-        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        # Default behavior (for backward compatibility)
+        if request.user.role == 'admin':
+            # For admins, show restaurant selection if multiple restaurants exist
+            restaurants = Restaurant.objects.all()
+            if restaurants.count() > 1:
+                # Show restaurant selection page
+                context = {'restaurants': restaurants, 'action': 'manage_meals'}
+                return render(request, 'restaurants/select_restaurant_for_action.html', context)
+            else:
+                restaurant = restaurants.first()
+        else:
+            restaurant = Restaurant.objects.filter(owner=request.user).first()
     
     if not restaurant:
         messages.error(request, 'No restaurant found.')
@@ -111,17 +142,32 @@ def manage_meals(request):
 
 
 @login_required
-def add_meal(request):
+def add_meal(request, restaurant_id=None):
     """Add a new meal"""
     if request.user.role not in ['owner', 'admin']:
         messages.error(request, 'Access denied. Restaurant owner privileges required.')
         return redirect('users:home')
     
     # Get restaurant
-    if request.user.role == 'admin':
-        restaurant = Restaurant.objects.first()
+    if restaurant_id:
+        # Specific restaurant requested
+        if request.user.role == 'admin':
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+        else:
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id, owner=request.user)
     else:
-        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        # Default behavior (for backward compatibility)
+        if request.user.role == 'admin':
+            # For admins, show restaurant selection if multiple restaurants exist
+            restaurants = Restaurant.objects.all()
+            if restaurants.count() > 1:
+                # Show restaurant selection page
+                context = {'restaurants': restaurants, 'action': 'add_meal'}
+                return render(request, 'restaurants/select_restaurant_for_action.html', context)
+            else:
+                restaurant = restaurants.first()
+        else:
+            restaurant = Restaurant.objects.filter(owner=request.user).first()
     
     if not restaurant:
         messages.error(request, 'No restaurant found.')
@@ -134,7 +180,8 @@ def add_meal(request):
             meal.restaurant = restaurant
             meal.save()
             messages.success(request, f'Meal "{meal.name}" added successfully!')
-            return redirect('restaurants:manage_meals')
+            # Redirect back to manage meals for this specific restaurant
+            return redirect('restaurants:manage_meals_for_restaurant', restaurant_id=restaurant.id)
     else:
         form = MealForm(restaurant=restaurant)
     
@@ -163,7 +210,8 @@ def edit_meal(request, meal_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'Meal "{meal.name}" updated successfully!')
-            return redirect('restaurants:manage_meals')
+            # Redirect back to context-aware manage meals
+            return redirect('restaurants:manage_meals_for_restaurant', restaurant_id=meal.restaurant.id)
     else:
         form = MealForm(instance=meal, restaurant=meal.restaurant)
     
@@ -192,7 +240,8 @@ def delete_meal(request, meal_id):
         meal_name = meal.name
         meal.delete()
         messages.success(request, f'Meal "{meal_name}" deleted successfully!')
-        return redirect('restaurants:manage_meals')
+        # Redirect back to context-aware manage meals
+        return redirect('restaurants:manage_meals_for_restaurant', restaurant_id=meal.restaurant.id)
     
     context = {
         'meal': meal,
@@ -225,17 +274,32 @@ def toggle_meal_availability(request, meal_id):
 
 
 @login_required
-def restaurant_settings(request):
+def restaurant_settings(request, restaurant_id=None):
     """Restaurant settings and profile management"""
     if request.user.role not in ['owner', 'admin']:
         messages.error(request, 'Access denied. Restaurant owner privileges required.')
         return redirect('users:home')
     
     # Get restaurant
-    if request.user.role == 'admin':
-        restaurant = Restaurant.objects.first()
+    if restaurant_id:
+        # Specific restaurant requested
+        if request.user.role == 'admin':
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+        else:
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id, owner=request.user)
     else:
-        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        # Default behavior (for backward compatibility)
+        if request.user.role == 'admin':
+            # For admins, show restaurant selection if multiple restaurants exist
+            restaurants = Restaurant.objects.all()
+            if restaurants.count() > 1:
+                # Show restaurant selection page
+                context = {'restaurants': restaurants, 'action': 'settings'}
+                return render(request, 'restaurants/select_restaurant_for_action.html', context)
+            else:
+                restaurant = restaurants.first()
+        else:
+            restaurant = Restaurant.objects.filter(owner=request.user).first()
     
     if not restaurant:
         messages.error(request, 'No restaurant found.')
@@ -276,17 +340,32 @@ def restaurant_settings(request):
 
 
 @login_required
-def restaurant_orders(request):
+def restaurant_orders(request, restaurant_id=None):
     """View restaurant orders"""
     if request.user.role not in ['owner', 'admin']:
         messages.error(request, 'Access denied. Restaurant owner privileges required.')
         return redirect('users:home')
     
     # Get restaurant
-    if request.user.role == 'admin':
-        restaurant = Restaurant.objects.first()
+    if restaurant_id:
+        # Specific restaurant requested
+        if request.user.role == 'admin':
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+        else:
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id, owner=request.user)
     else:
-        restaurant = Restaurant.objects.filter(owner=request.user).first()
+        # Default behavior (for backward compatibility)
+        if request.user.role == 'admin':
+            # For admins, show restaurant selection if multiple restaurants exist
+            restaurants = Restaurant.objects.all()
+            if restaurants.count() > 1:
+                # Show restaurant selection page
+                context = {'restaurants': restaurants, 'action': 'orders'}
+                return render(request, 'restaurants/select_restaurant_for_action.html', context)
+            else:
+                restaurant = restaurants.first()
+        else:
+            restaurant = Restaurant.objects.filter(owner=request.user).first()
     
     if not restaurant:
         messages.error(request, 'No restaurant found.')
@@ -318,10 +397,8 @@ def restaurant_order_details(request, order_id):
         if request.user.role == 'admin':
             order = get_object_or_404(Order, id=order_id)
         else:
-            restaurant = Restaurant.objects.filter(owner=request.user).first()
-            if not restaurant:
-                return JsonResponse({'success': False, 'error': 'No restaurant found'}, status=404)
-            order = get_object_or_404(Order, id=order_id, restaurant=restaurant)
+            # Ensure the order belongs to one of the current owner's restaurants
+            order = get_object_or_404(Order, id=order_id, restaurant__owner=request.user)
         
         # Get order items
         items = []
@@ -365,10 +442,8 @@ def restaurant_update_order_status(request, order_id):
         if request.user.role == 'admin':
             order = get_object_or_404(Order, id=order_id)
         else:
-            restaurant = Restaurant.objects.filter(owner=request.user).first()
-            if not restaurant:
-                return JsonResponse({'success': False, 'error': 'No restaurant found'}, status=404)
-            order = get_object_or_404(Order, id=order_id, restaurant=restaurant)
+            # Ensure the order belongs to one of the current owner's restaurants
+            order = get_object_or_404(Order, id=order_id, restaurant__owner=request.user)
         
         import json
         try:

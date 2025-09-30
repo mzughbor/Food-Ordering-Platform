@@ -3800,14 +3800,24 @@
                 ensureChartJsLoaded(function() { initializePlatformCharts(a); });
             }
             // Also load User Distribution for the platform analytics page
+            console.log('🔍 Loading user analytics for platform distribution chart...');
             fetch('/admin-api/users/analytics/', { method:'GET', headers: { 'X-CSRFToken': getCSRFToken(), 'Content-Type':'application/json' }})
               .then(rr => rr.json())
               .then(usersData => {
+                  console.log('📊 User analytics response:', usersData);
                   if (usersData && usersData.success) {
-                      ensureChartJsLoaded(function() { initializeUserCharts(usersData.analytics, 'platformUserDistributionChart'); });
+                      console.log('✅ User analytics data received, initializing chart...');
+                      ensureChartJsLoaded(function() { 
+                          console.log('📈 Chart.js loaded, calling initializeUserCharts...');
+                          initializeUserCharts(usersData.analytics, 'platformUserDistributionChart'); 
+                      });
+                  } else {
+                      console.error('❌ User analytics failed:', usersData);
                   }
               })
-              .catch(()=>{});
+              .catch((err)=>{
+                  console.error('❌ Error loading user analytics:', err);
+              });
           })
           .catch(()=> showNotification('Network error loading platform analytics', 'error'));
     }
@@ -3904,12 +3914,25 @@
     }
 
     function initializeUserCharts(analytics, elId = 'userDistributionChart') {
+        console.log('🔍 Initializing user chart with ID:', elId);
         const el = document.getElementById(elId);
-        if (!el) return;
+        if (!el) {
+            console.error('❌ Chart element not found:', elId);
+            return;
+        }
+        console.log('✅ Chart element found:', el);
+        
         const byRole = analytics.by_role || [];
+        console.log('📊 User data by role:', byRole);
+        
         const labels = byRole.map(r => (r.role || '').toString());
         const data = byRole.map(r => r.count || 0);
+        
+        console.log('📈 Chart labels:', labels);
+        console.log('📈 Chart data:', data);
+        
         if (el._chartInstance) { try { el._chartInstance.destroy(); } catch(e) {} }
+        
         const chart = new Chart(el, {
             type: 'doughnut',
             data: {
@@ -3919,9 +3942,16 @@
                     backgroundColor: ['#0d6efd','#198754','#ffc107','#dc3545','#6f42c1','#0dcaf0']
                 }]
             },
-            options: { plugins: { legend: { position: 'bottom' } } }
+            options: { 
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { position: 'bottom' } 
+                } 
+            }
         });
         el._chartInstance = chart;
+        console.log('✅ User distribution chart created successfully');
     }
     
     function updateAnalyticsOverview(analytics) {

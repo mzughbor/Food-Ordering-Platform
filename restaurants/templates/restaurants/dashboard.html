@@ -57,7 +57,7 @@
                         </div>
                         <h3 class="fw-bold text-dark">
                             {% for restaurant in restaurants %}
-                                {{ restaurant.meals.count|add:0 }}
+                                {{ restaurant.meal_set.count|add:0 }}
                             {% empty %}
                                 0
                             {% endfor %}
@@ -128,7 +128,7 @@
                                     <div class="col-6">
                                         <div class="d-flex align-items-center">
                                             <ion-icon name="fast-food-outline" class="text-muted me-2"></ion-icon>
-                                            <small class="text-muted">{{ restaurant.meals.count }} meals</small>
+                                            <small class="text-muted">{{ restaurant.meal_set.count }} meals</small>
                                         </div>
                                     </div>
                                     {% if user.role == 'admin' %}
@@ -142,18 +142,25 @@
                                 </div>
                                 
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-primary btn-sm">
+                                    <a href="{% url 'restaurants:restaurant_detail' restaurant.id %}" class="btn btn-primary btn-sm">
                                         <ion-icon name="eye-outline" class="me-1"></ion-icon>
                                         View Details
-                                    </button>
-                                    <button class="btn btn-success btn-sm">
+                                    </a>
+                                    {% if user.role == 'admin' or restaurant.owner == user %}
+                                    <a href="{% url 'restaurants:add_meal_for_restaurant' restaurant.id %}" class="btn btn-success btn-sm">
                                         <ion-icon name="add-outline" class="me-1"></ion-icon>
                                         Add Meal
-                                    </button>
-                                    <button class="btn btn-outline-secondary btn-sm">
+                                    </a>
+                                    <a href="{% url 'restaurants:restaurant_settings_for_restaurant' restaurant.id %}" class="btn btn-outline-secondary btn-sm">
                                         <ion-icon name="settings-outline" class="me-1"></ion-icon>
                                         Settings
-                                    </button>
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'restaurants:restaurant_detail' restaurant.id %}" class="btn btn-success btn-sm">
+                                        <ion-icon name="restaurant-outline" class="me-1"></ion-icon>
+                                        View Menu
+                                    </a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -199,51 +206,75 @@
         
         <div class="row g-4">
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body">
-                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <ion-icon name="add-outline" size="large" class="text-white"></ion-icon>
+                {% if restaurants|length == 1 %}
+                    <a href="{% url 'restaurants:add_meal_for_restaurant' restaurants.first.id %}" class="text-decoration-none">
+                {% else %}
+                    <a href="{% url 'restaurants:add_meal' %}" class="text-decoration-none">
+                {% endif %}
+                    <div class="card border-0 shadow-sm text-center h-100 quick-action-card">
+                        <div class="card-body">
+                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <ion-icon name="add-outline" size="large" class="text-white"></ion-icon>
+                            </div>
+                            <h6 class="fw-bold text-dark">Add New Meal</h6>
+                            <p class="text-muted small">{% if restaurants|length == 1 %}Add delicious meals to {{ restaurants.first.name }}{% else %}Add delicious meals to your menu{% endif %}</p>
                         </div>
-                        <h6 class="fw-bold">Add New Meal</h6>
-                        <p class="text-muted small">Add delicious meals to your menu</p>
                     </div>
-                </div>
+                </a>
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body">
-                        <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <ion-icon name="receipt-outline" size="large" class="text-white"></ion-icon>
+                {% if restaurants|length == 1 %}
+                    <a href="{% url 'restaurants:restaurant_orders_for_restaurant' restaurants.first.id %}" class="text-decoration-none">
+                {% else %}
+                    <a href="{% url 'restaurants:restaurant_orders' %}" class="text-decoration-none">
+                {% endif %}
+                    <div class="card border-0 shadow-sm text-center h-100 quick-action-card">
+                        <div class="card-body">
+                            <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <ion-icon name="receipt-outline" size="large" class="text-white"></ion-icon>
+                            </div>
+                            <h6 class="fw-bold text-dark">View Orders</h6>
+                            <p class="text-muted small">{% if restaurants|length == 1 %}Check orders for {{ restaurants.first.name }}{% else %}Check incoming orders{% endif %}</p>
                         </div>
-                        <h6 class="fw-bold">View Orders</h6>
-                        <p class="text-muted small">Check incoming orders</p>
                     </div>
-                </div>
+                </a>
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body">
-                        <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <ion-icon name="analytics-outline" size="large" class="text-white"></ion-icon>
+                {% if restaurants|length == 1 %}
+                    <a href="{% url 'restaurants:restaurant_dashboard_for_restaurant' restaurants.first.id %}" class="text-decoration-none">
+                {% else %}
+                    <a href="{% url 'restaurants:restaurant_dashboard' %}" class="text-decoration-none">
+                {% endif %}
+                    <div class="card border-0 shadow-sm text-center h-100 quick-action-card">
+                        <div class="card-body">
+                            <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <ion-icon name="analytics-outline" size="large" class="text-white"></ion-icon>
+                            </div>
+                            <h6 class="fw-bold text-dark">Analytics</h6>
+                            <p class="text-muted small">{% if restaurants|length == 1 %}View {{ restaurants.first.name }} insights{% else %}View business insights{% endif %}</p>
                         </div>
-                        <h6 class="fw-bold">Analytics</h6>
-                        <p class="text-muted small">View business insights</p>
                     </div>
-                </div>
+                </a>
             </div>
             
             <div class="col-md-3">
-                <div class="card border-0 shadow-sm text-center h-100">
-                    <div class="card-body">
-                        <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <ion-icon name="settings-outline" size="large" class="text-white"></ion-icon>
+                {% if restaurants|length == 1 %}
+                    <a href="{% url 'restaurants:restaurant_settings_for_restaurant' restaurants.first.id %}" class="text-decoration-none">
+                {% else %}
+                    <a href="{% url 'restaurants:restaurant_settings' %}" class="text-decoration-none">
+                {% endif %}
+                    <div class="card border-0 shadow-sm text-center h-100 quick-action-card">
+                        <div class="card-body">
+                            <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <ion-icon name="settings-outline" size="large" class="text-white"></ion-icon>
+                            </div>
+                            <h6 class="fw-bold text-dark">Settings</h6>
+                            <p class="text-muted small">{% if restaurants|length == 1 %}Manage {{ restaurants.first.name }} settings{% else %}Manage restaurant settings{% endif %}</p>
                         </div>
-                        <h6 class="fw-bold">Settings</h6>
-                        <p class="text-muted small">Manage restaurant settings</p>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
     </div>
@@ -258,6 +289,19 @@
 .restaurant-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+}
+
+.quick-action-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.quick-action-card:hover .text-dark {
+    color: inherit !important;
 }
 </style>
 {% endblock %}

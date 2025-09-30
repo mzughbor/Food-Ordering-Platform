@@ -159,13 +159,18 @@ Food_Ordering_Platform/
 ## Major Improvements & Bug Fixes
 
 ### 🔧 Fixed Issues
-- **Dashboard Analytics Error**: Fixed "Cannot set properties of null" error when navigating
-- **Empty Charts**: All analytics charts now render correctly with real data
-- **Restaurant Order Management**: "View Details" buttons now work with proper modals
-- **Delivery Workflow Conflicts**: Fixed status conflicts between restaurant and delivery roles
-- **Order Tracking Access**: Restaurant owners can now view orders from their restaurant
-- **Role-Based Navigation**: Delivery users no longer see inappropriate menu items
-- **CSRF Token Errors**: Fixed JavaScript syntax errors in templates
+- **Django Admin Separation**: Restored default `/admin/` untouched; moved custom admin APIs to `/admin-api/` and updated namespace to `admin_api`
+- **Admin URL Conflicts**: Fixed `NoReverseMatch` by updating all `admin:` links to `admin_api:` in templates and views
+- **Restaurant Reverse Relations**: Replaced `restaurant.meals` with `restaurant.meal_set` where needed
+- **Owner Access Lockdown**: Owners cannot access other restaurants by URL guessing (404 on mismatch)
+- **Cart Script Duplication**: Prevent duplicate `CartManager` initialization and removed extra script includes
+- **Cart & Checkout Images**: Show real meal images with graceful fallback icons
+- **Charts**: Fixed User Distribution chart init and data loading in custom admin dashboard
+- **Add Meal Flow**: Admins select restaurant or pass `/add-meal/<id>/`; owners unaffected
+- **Restaurant Settings**: Dynamic per-restaurant settings `/restaurants/settings/<id>/` with selection for admins
+- **Dashboard Navigation**: All sidebar/action links now context-aware (Overview, Orders, Manage Meals, Settings)
+- **Dashboard Meal Actions**: Edit/Delete buttons work directly from dashboard list
+- **Order Pages Consistency**: Checkout success timeline matches order tracking status logic
 
 ### 🚀 New Features
 - **Multi-stage Order Status**: Complete workflow with proper role separation
@@ -232,6 +237,14 @@ Food_Ordering_Platform/
 - Role-based decorators prevent unauthorized access
 - Order status transitions follow a strict flow
 - Real-time updates use polling (can be upgraded to WebSockets)
+
+## What's New (This Sprint)
+- Separated default Django admin from custom admin panel to remove conflicts
+- Introduced per-restaurant routing for dashboard, orders, meals, and settings
+- Added a generic restaurant selection page for admin actions
+- Hardened owner authorization on all restaurant and order endpoints
+- Fixed cart and checkout images to use uploaded meal images
+- Unified order status UI across success and tracking pages
 
 ## Future Enhancements
 - **WebSocket Integration**: Replace polling with real-time WebSocket notifications

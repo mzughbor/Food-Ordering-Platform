@@ -16,25 +16,25 @@
                     <span class="d-md-none">Panel</span>
                 </h5>
                 <nav class="nav flex-column" aria-label="Restaurant dashboard navigation">
-                    <a class="nav-link active text-dark fw-medium d-flex align-items-center py-2" href="{% url 'restaurants:restaurant_dashboard' %}">
+                    <a class="nav-link active text-dark fw-medium d-flex align-items-center py-2" href="{% if restaurant %}{% url 'restaurants:restaurant_dashboard_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_dashboard' %}{% endif %}">
                         <ion-icon name="grid-outline" class="me-2"></ion-icon>
                         <span>Overview</span>
                     </a>
-                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% url 'restaurants:restaurant_orders' %}">
+                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% if restaurant %}{% url 'restaurants:restaurant_orders_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_orders' %}{% endif %}">
                         <ion-icon name="receipt-outline" class="me-2"></ion-icon>
                         <span>Orders</span>
                         {% if recent_orders %}
                             <span class="badge bg-primary ms-auto">{{ recent_orders|length }}</span>
                         {% endif %}
                     </a>
-                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% url 'restaurants:manage_meals' %}">
+                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% if restaurant %}{% url 'restaurants:manage_meals_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:manage_meals' %}{% endif %}">
                         <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
                         <span>Manage Meals</span>
                         {% if meals %}
                             <span class="badge bg-success ms-auto">{{ meals|length }}</span>
                         {% endif %}
                     </a>
-                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% url 'restaurants:restaurant_settings' %}">
+                    <a class="nav-link text-dark fw-medium d-flex align-items-center py-2" href="{% if restaurant %}{% url 'restaurants:restaurant_settings_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_settings' %}{% endif %}">
                         <ion-icon name="settings-outline" class="me-2"></ion-icon>
                         <span>Settings</span>
                     </a>
@@ -94,19 +94,19 @@
                                         </a>
                                     </div>
                                     <div class="col-md-3">
-                                        <a href="{% url 'restaurants:manage_meals' %}" class="btn btn-outline-primary w-100">
+                                        <a href="{% if restaurant %}{% url 'restaurants:manage_meals_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:manage_meals' %}{% endif %}" class="btn btn-outline-primary w-100">
                                             <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
                                             Manage Meals
                                         </a>
                                     </div>
                                     <div class="col-md-3">
-                                        <a href="{% url 'restaurants:restaurant_orders' %}" class="btn btn-outline-success w-100">
+                                        <a href="{% if restaurant %}{% url 'restaurants:restaurant_orders_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_orders' %}{% endif %}" class="btn btn-outline-success w-100">
                                             <ion-icon name="receipt-outline" class="me-2"></ion-icon>
                                             View Orders
                                         </a>
                                     </div>
                                     <div class="col-md-3">
-                                        <a href="{% url 'restaurants:restaurant_settings' %}" class="btn btn-outline-secondary w-100">
+                                        <a href="{% if restaurant %}{% url 'restaurants:restaurant_settings_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_settings' %}{% endif %}" class="btn btn-outline-secondary w-100">
                                             <ion-icon name="settings-outline" class="me-2"></ion-icon>
                                             Restaurant Settings
                                         </a>
@@ -127,7 +127,7 @@
                                 <span class="badge bg-primary ms-2">{{ recent_orders|length }}</span>
                             {% endif %}
                         </h4>
-                        <a href="{% url 'restaurants:restaurant_orders' %}" class="btn btn-outline-primary btn-sm">
+                        <a href="{% if restaurant %}{% url 'restaurants:restaurant_orders_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_orders' %}{% endif %}" class="btn btn-outline-primary btn-sm">
                             <ion-icon name="eye-outline" class="me-1"></ion-icon>
                             View All
                         </a>
@@ -221,7 +221,7 @@
                             {% endif %}
                         </h4>
                         <div class="d-flex gap-2">
-                            <a href="{% url 'restaurants:manage_meals' %}" class="btn btn-outline-primary btn-sm">
+                            <a href="{% if restaurant %}{% url 'restaurants:manage_meals_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:manage_meals' %}{% endif %}" class="btn btn-outline-primary btn-sm">
                                 <ion-icon name="create-outline" class="me-1"></ion-icon>
                                 <span class="d-none d-sm-inline">Manage All</span>
                                 <span class="d-sm-none">Manage</span>
@@ -291,18 +291,16 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group" aria-label="Meal actions">
-                                            <button class="btn btn-sm btn-outline-primary edit-meal-btn" 
-                                                    title="Edit Meal"
-                                                    data-meal-id="{{ meal.id }}"
-                                                    data-meal-name="{{ meal.name }}">
+                                            <a href="{% url 'restaurants:edit_meal' meal.id %}"
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Edit Meal">
                                                 <ion-icon name="create-outline"></ion-icon>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger delete-meal-btn" 
-                                                    title="Delete Meal"
-                                                    data-meal-id="{{ meal.id }}"
-                                                    data-meal-name="{{ meal.name }}">
+                                            </a>
+                                            <a href="{% url 'restaurants:delete_meal' meal.id %}"
+                                               class="btn btn-sm btn-outline-danger" 
+                                               title="Delete Meal">
                                                 <ion-icon name="trash-outline"></ion-icon>
-                                            </button>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -446,7 +444,7 @@
                         Restaurant Profile
                     </h4>
                     
-                    <form method="post" action="{% url 'restaurants:restaurant_settings' %}">
+                    <form method="post" action="{% if restaurant %}{% url 'restaurants:restaurant_settings_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_settings' %}{% endif %}">
                         {% csrf_token %}
                         <div class="row g-3">
                             <div class="col-12 col-sm-6 col-md-6 col-lg-6">

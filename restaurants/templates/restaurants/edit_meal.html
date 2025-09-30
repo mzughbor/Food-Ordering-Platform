@@ -9,7 +9,7 @@
         <div class="col-lg-8">
             <!-- Header -->
             <div class="d-flex align-items-center mb-4">
-                <a href="{% url 'restaurants:manage_meals' %}" class="btn btn-outline-secondary me-3">
+                <a href="{% if meal.restaurant %}{% url 'restaurants:manage_meals_for_restaurant' meal.restaurant.id %}{% else %}{% url 'restaurants:manage_meals' %}{% endif %}" class="btn btn-outline-secondary me-3">
                     <ion-icon name="arrow-back-outline" class="me-1"></ion-icon>
                     Back to Meals
                 </a>
@@ -113,7 +113,7 @@
                                 <ion-icon name="checkmark-outline" class="me-2"></ion-icon>
                                 Update Meal
                             </button>
-                            <a href="{% url 'restaurants:manage_meals' %}" class="btn btn-outline-secondary">
+                            <a href="{% if meal.restaurant %}{% url 'restaurants:manage_meals_for_restaurant' meal.restaurant.id %}{% else %}{% url 'restaurants:manage_meals' %}{% endif %}" class="btn btn-outline-secondary">
                                 <ion-icon name="close-outline" class="me-2"></ion-icon>
                                 Cancel
                             </a>

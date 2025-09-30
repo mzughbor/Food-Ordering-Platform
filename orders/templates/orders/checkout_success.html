@@ -63,9 +63,13 @@
                     {% for item in order_items %}
                     <div class="d-flex align-items-center p-4 border-bottom">
                         <div class="me-3">
+                            {% if item.meal.image %}
+                            <img src="{{ item.meal.image.url }}" alt="{{ item.meal.name }}" class="rounded-2" style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
                             <div class="bg-light rounded-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                                 <ion-icon name="fast-food-outline" style="font-size: 30px; color: #94D82D;"></ion-icon>
                             </div>
+                            {% endif %}
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="fw-bold mb-1">{{ item.meal.name }}</h6>
@@ -106,7 +110,7 @@
                 </div>
             </div>
 
-            <!-- Order Status Timeline -->
+            <!-- Order Status Timeline (aligned with tracking page) -->
             <div class="card border-0 shadow-sm mb-5">
                 <div class="card-header bg-light">
                     <h5 class="fw-bold text-dark mb-0">
@@ -116,36 +120,87 @@
                 </div>
                 <div class="card-body p-4">
                     <div class="timeline">
-                        <div class="timeline-item completed">
-                            <div class="timeline-marker bg-success"></div>
+                        <!-- Placed -->
+                        <div class="timeline-item 
+                            {% if order.status in 'confirmed,preparing,ready,picked_up,in_transit,delivered' %}completed
+                            {% elif order.status == 'pending' %}active
+                            {% endif %}">
+                            <div class="timeline-marker"></div>
                             <div class="timeline-content">
-                                <h6 class="fw-bold text-dark">Order Confirmed</h6>
-                                <p class="text-muted mb-0">Your order has been received and confirmed</p>
-                                <small class="text-muted">{{ order.created_at|date:"M d, Y H:i"|default:"Jan 15, 2024 14:30" }}</small>
+                                <h6 class="fw-bold">Order Placed</h6>
+                                <p class="text-muted mb-0">{{ order.created_at|date:"F d, Y \\a\\t g:i A" }}</p>
+                                <small class="text-success">✓ Order received</small>
                             </div>
                         </div>
-                        <div class="timeline-item active">
-                            <div class="timeline-marker bg-warning"></div>
+
+                        <!-- Confirmed -->
+                        <div class="timeline-item 
+                            {% if order.status in 'preparing,ready,picked_up,in_transit,delivered' %}completed
+                            {% elif order.status == 'confirmed' %}active
+                            {% endif %}">
+                            <div class="timeline-marker"></div>
                             <div class="timeline-content">
-                                <h6 class="fw-bold text-dark">Preparing</h6>
-                                <p class="text-muted mb-0">Your order is being prepared by the restaurant</p>
-                                <small class="text-muted">Estimated: 15-20 minutes</small>
+                                <h6 class="fw-bold">Order Confirmed</h6>
+                                <p class="text-muted mb-0">
+                                    {% if order.status in 'confirmed,preparing,ready,picked_up,in_transit,delivered' %}
+                                        Restaurant confirmed your order
+                                    {% else %}
+                                        Waiting for confirmation...
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-light"></div>
+
+                        <!-- Preparing -->
+                        <div class="timeline-item 
+                            {% if order.status in 'ready,picked_up,in_transit,delivered' %}completed
+                            {% elif order.status == 'preparing' %}active
+                            {% endif %}">
+                            <div class="timeline-marker"></div>
                             <div class="timeline-content">
-                                <h6 class="fw-bold text-muted">Out for Delivery</h6>
-                                <p class="text-muted mb-0">Your order is on its way to you</p>
-                                <small class="text-muted">Estimated: 10-15 minutes</small>
+                                <h6 class="fw-bold">Preparing</h6>
+                                <p class="text-muted mb-0">
+                                    {% if order.status == 'preparing' %}Your order is being prepared{% elif order.status in 'ready,picked_up,in_transit,delivered' %}Meal prepared{% else %}Waiting to start...{% endif %}
+                                </p>
                             </div>
                         </div>
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-light"></div>
+
+                        <!-- Ready -->
+                        <div class="timeline-item 
+                            {% if order.status in 'picked_up,in_transit,delivered' %}completed
+                            {% elif order.status == 'ready' %}active
+                            {% endif %}">
+                            <div class="timeline-marker"></div>
                             <div class="timeline-content">
-                                <h6 class="fw-bold text-muted">Delivered</h6>
-                                <p class="text-muted mb-0">Your order has been delivered</p>
-                                <small class="text-muted">Estimated: 5-10 minutes</small>
+                                <h6 class="fw-bold">Ready for Pickup</h6>
+                                <p class="text-muted mb-0">
+                                    {% if order.status == 'ready' %}Waiting for pickup{% elif order.status in 'picked_up,in_transit,delivered' %}Picked up{% else %}Almost ready...{% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Picked Up / In Transit -->
+                        <div class="timeline-item 
+                            {% if order.status == 'delivered' %}completed
+                            {% elif order.status in 'picked_up,in_transit' %}active
+                            {% endif %}">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">On the Way</h6>
+                                <p class="text-muted mb-0">
+                                    {% if order.status == 'picked_up' %}Picked up by delivery{% elif order.status == 'in_transit' %}In transit to you{% elif order.status == 'delivered' %}Arrived{% else %}Awaiting pickup{% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Delivered / Cancelled -->
+                        <div class="timeline-item {% if order.status == 'delivered' %}completed{% elif order.status == 'cancelled' %}cancelled{% endif %}">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h6 class="fw-bold">{% if order.status == 'cancelled' %}Cancelled{% else %}Delivered{% endif %}</h6>
+                                <p class="text-muted mb-0">
+                                    {% if order.status == 'delivered' %}Order delivered successfully!{% elif order.status == 'cancelled' %}This order was cancelled{% else %}Will be delivered soon{% endif %}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -271,6 +326,53 @@
 
     .timeline-content {
         margin-left: 20px;
+    }
+
+    /* Simple Dark Mode Text Fixes */
+    @media (prefers-color-scheme: dark) {
+        .text-dark {
+            color: #ffffff !important;
+        }
+        
+        .card {
+            background-color: #1e1e1e;
+            border-color: #333;
+            color: #e0e0e0;
+        }
+        
+        .card-header.bg-light {
+            background-color: #2a2a2a !important;
+        }
+        
+        .bg-light {
+            background-color: #374151 !important;
+        }
+        
+        .timeline::before {
+            background: #444;
+        }
+        
+        .timeline-marker {
+            border-color: #1e1e1e;
+        }
+    }
+
+    [data-bs-theme="dark"] .text-dark {
+        color: #ffffff !important;
+    }
+
+    [data-bs-theme="dark"] .card {
+        background-color: #1e1e1e;
+        border-color: #333;
+        color: #e0e0e0;
+    }
+
+    [data-bs-theme="dark"] .card-header.bg-light {
+        background-color: #2a2a2a !important;
+    }
+
+    [data-bs-theme="dark"] .bg-light {
+        background-color: #374151 !important;
     }
 </style>
 

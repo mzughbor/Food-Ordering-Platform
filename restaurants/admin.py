@@ -40,7 +40,7 @@ class RestaurantAdmin(admin.ModelAdmin):
     
     def meal_count(self, obj):
         """Display number of meals for this restaurant"""
-        count = obj.meals.count()
+        count = obj.meal_set.count()
         if count > 0:
             url = reverse('admin:meals_meal_changelist') + f'?restaurant__id__exact={obj.id}'
             return format_html('<a href="{}">{} meal(s)</a>', url, count)
@@ -62,13 +62,13 @@ class RestaurantAdmin(admin.ModelAdmin):
     def activate_restaurant(self, request, queryset):
         """Bulk action to activate all meals in selected restaurants"""
         for restaurant in queryset:
-            restaurant.meals.update(is_available=True)
+            restaurant.meal_set.update(is_available=True)
         self.message_user(request, f'All meals in {queryset.count()} restaurants were activated.')
     activate_restaurant.short_description = "Activate all meals in selected restaurants"
     
     def deactivate_restaurant(self, request, queryset):
         """Bulk action to deactivate all meals in selected restaurants"""
         for restaurant in queryset:
-            restaurant.meals.update(is_available=False)
+            restaurant.meal_set.update(is_available=False)
         self.message_user(request, f'All meals in {queryset.count()} restaurants were deactivated.')
     deactivate_restaurant.short_description = "Deactivate all meals in selected restaurants"

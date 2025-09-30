@@ -21,7 +21,7 @@
                         <ion-icon name="grid-outline" class="me-2"></ion-icon>
                         Dashboard
                     </a>
-                    <a class="nav-link active fw-medium" href="{% url 'admin:platform_settings' %}">
+                    <a class="nav-link active fw-medium" href="{% url 'admin_api:platform_settings' %}">
                         <ion-icon name="cog-outline" class="me-2"></ion-icon>
                         Platform Settings
                     </a>
@@ -485,7 +485,7 @@
                 submitBtn.disabled = true;
                 
                 // Submit form
-                fetch('{% url "admin:update_platform_settings" %}', {
+                fetch('{% url "admin_api:update_platform_settings" %}', {
                     method: 'POST',
                     body: formData,
                     headers: {

@@ -11,19 +11,19 @@
             <div class="card">
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <a href="{% url 'restaurants:restaurant_dashboard' %}" class="list-group-item list-group-item-action">
+                        <a href="{% if restaurant %}{% url 'restaurants:restaurant_dashboard_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_dashboard' %}{% endif %}" class="list-group-item list-group-item-action">
                             <ion-icon name="grid-outline" class="me-2"></ion-icon>
                             Dashboard
                         </a>
-                        <a href="{% url 'restaurants:manage_meals' %}" class="list-group-item list-group-item-action">
+                        <a href="{% if restaurant %}{% url 'restaurants:manage_meals_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:manage_meals' %}{% endif %}" class="list-group-item list-group-item-action">
                             <ion-icon name="restaurant-outline" class="me-2"></ion-icon>
                             Manage Meals
                         </a>
-                        <a href="{% url 'restaurants:restaurant_orders' %}" class="list-group-item list-group-item-action active">
+                        <a href="{% if restaurant %}{% url 'restaurants:restaurant_orders_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_orders' %}{% endif %}" class="list-group-item list-group-item-action active">
                             <ion-icon name="receipt-outline" class="me-2"></ion-icon>
                             Orders
                         </a>
-                        <a href="{% url 'restaurants:restaurant_settings' %}" class="list-group-item list-group-item-action">
+                        <a href="{% if restaurant %}{% url 'restaurants:restaurant_settings_for_restaurant' restaurant.id %}{% else %}{% url 'restaurants:restaurant_settings' %}{% endif %}" class="list-group-item list-group-item-action">
                             <ion-icon name="settings-outline" class="me-2"></ion-icon>
                             Settings
                         </a>

@@ -590,7 +590,7 @@ def platform_settings(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Platform settings updated successfully!')
-            return redirect('admin:platform_settings')
+            return redirect('admin_api:platform_settings')
         else:
             messages.error(request, 'Please correct the errors below.')
     else:

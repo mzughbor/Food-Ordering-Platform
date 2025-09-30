@@ -32,9 +32,13 @@
                                     <td class="py-4 px-4">
                                         <div class="d-flex align-items-center">
                                             <div class="me-3">
+                                                {% if item.meal.image %}
+                                                <img src="{{ item.meal.image.url }}" alt="{{ item.meal.name }}" class="rounded-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                                {% else %}
                                                 <div class="bg-light rounded-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                                                     <ion-icon name="fast-food-outline" style="font-size: 30px; color: #94D82D;"></ion-icon>
                                                 </div>
+                                                {% endif %}
                                             </div>
                                             <div>
                                                 <h6 class="fw-bold mb-1">{{ item.meal.name }}</h6>
