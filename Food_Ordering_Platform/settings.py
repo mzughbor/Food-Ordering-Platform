@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-mz+19^r)ywy8b(=4&zq4$f4ixt_$8^+p@8zt+^ap7@il9oae#9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'testserver']
+#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'testserver']
+#ALLOWED_HOSTS = ['54.87.56.250', 'localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['*']
 
 # Security headers to fix Cross-Origin-Opener-Policy warnings
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
@@ -96,6 +98,17 @@ DATABASES = {
     }
 }
 
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': '??',
+#        'USER': '??',
+#        'PASSWORD': '??',
+#        'HOST': '127.0.0.1',
+#        'PORT': '3306',
+#    }
+#}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -121,7 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Cairo'
 
 USE_I18N = True
 
@@ -153,3 +166,12 @@ AUTH_USER_MODEL = 'users.User'
 LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/users/home/'
 LOGOUT_REDIRECT_URL = '/users/home/'
+
+# --- Static files (CSS, JavaScript, Images) ---
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# --- Media files (User uploads) ---
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

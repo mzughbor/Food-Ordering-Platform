@@ -19,19 +19,25 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 def redirect_to_home(request):
     return redirect('users:home')
 
 urlpatterns = [
-    path('admin/', admin.site.urls),  # Use Django's default admin
-    path("admin-api/", include("admin_panel.urls", namespace="admin_api")),  # Admin API endpoints
-    path("", redirect_to_home, name="home"),
-    path("users/", include("users.urls", namespace="users")),
-    path("meals/", include("meals.urls", namespace="meals")),
-    path("orders/", include("orders.urls", namespace="orders")),
-    path("restaurants/", include("restaurants.urls", namespace="restaurants")),
+    path('food-delivery-pro/', include([
+        path('admin/', admin.site.urls),
+        path("admin-api/", include("admin_panel.urls", namespace="admin_api")),
+        path("", redirect_to_home, name="home"),
+        path("users/", include("users.urls", namespace="users")),
+        path("meals/", include("meals.urls", namespace="meals")),
+        path("orders/", include("orders.urls", namespace="orders")),
+        path("restaurants/", include("restaurants.urls", namespace="restaurants")),
+
+        path('food-delivery-pro/', RedirectView.as_view(url='/', permanent=False)),
+    ])),
 ]
+
 
 # Serve media files during development
 if settings.DEBUG:
