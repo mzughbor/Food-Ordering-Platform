@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+# --- online deployment settings ---
+#FORCE_SCRIPT_NAME = '/food-delivery-pro/'
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,9 +29,8 @@ SECRET_KEY = 'django-insecure-mz+19^r)ywy8b(=4&zq4$f4ixt_$8^+p@8zt+^ap7@il9oae#9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'testserver']
-#ALLOWED_HOSTS = ['54.87.56.250', 'localhost', '127.0.0.1', '0.0.0.0']
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['mzughbor.duckdns.org', '54.87.56.250', 'localhost', 'testserver', '127.0.0.1', '0.0.0.0']
+#ALLOWED_HOSTS = ['*']
 
 # Security headers to fix Cross-Origin-Opener-Policy warnings
 SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
@@ -98,18 +101,6 @@ DATABASES = {
     }
 }
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.mysql',
-#        'NAME': '??',
-#        'USER': '??',
-#        'PASSWORD': '??',
-#        'HOST': '127.0.0.1',
-#        'PORT': '3306',
-#    }
-#}
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -154,6 +145,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
 
+# --- Static files (CSS, JavaScript, Images) ---
+# --- online deployment settings ----
+#STATIC_URL = '/food-delivery-pro/static/'
+#STATICFILES_DIRS = [BASE_DIR / 'static']
+#STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -167,11 +164,10 @@ LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/users/home/'
 LOGOUT_REDIRECT_URL = '/users/home/'
 
-# --- Static files (CSS, JavaScript, Images) ---
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# --- Media files (User uploads) ---
-MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
+
+# --- online deployment settings ---
+# --- Media files (User uploads) ---
+#MEDIA_URL = '/food-delivery-pro/media/'
+#MEDIA_ROOT = BASE_DIR / 'media'

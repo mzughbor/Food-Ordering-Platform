@@ -25,17 +25,13 @@ def redirect_to_home(request):
     return redirect('users:home')
 
 urlpatterns = [
-    path('food-delivery-pro/', include([
-        path('admin/', admin.site.urls),
-        path("admin-api/", include("admin_panel.urls", namespace="admin_api")),
-        path("", redirect_to_home, name="home"),
-        path("users/", include("users.urls", namespace="users")),
-        path("meals/", include("meals.urls", namespace="meals")),
-        path("orders/", include("orders.urls", namespace="orders")),
-        path("restaurants/", include("restaurants.urls", namespace="restaurants")),
-
-        path('food-delivery-pro/', RedirectView.as_view(url='/', permanent=False)),
-    ])),
+    path('admin/', admin.site.urls),
+    path("admin-api/", include("admin_panel.urls", namespace="admin_api")),
+    path("", redirect_to_home, name="home"),
+    path("users/", include("users.urls", namespace="users")),
+    path("meals/", include("meals.urls", namespace="meals")),
+    path("orders/", include("orders.urls", namespace="orders")),
+    path("restaurants/", include("restaurants.urls", namespace="restaurants")),
 ]
 
 
