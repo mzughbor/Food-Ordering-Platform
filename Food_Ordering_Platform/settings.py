@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'meals',
     'orders',
     'admin_panel',
+    'django.contrib.sitemaps',
 ]
 
 MIDDLEWARE = [

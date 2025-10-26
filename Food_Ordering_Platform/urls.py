@@ -21,8 +21,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView, TemplateView
 
+from django.contrib import sitemaps
+from django.contrib.sitemaps.views import sitemap
+from .sitemap import StaticViewSitemap, RestaurantSitemap, MealSitemap
+
+
 def redirect_to_home(request):
     return redirect('users:home')
+
+sitemaps_dict = {
+    'static': StaticViewSitemap,
+    'restaurants': RestaurantSitemap,
+    'meals': MealSitemap,
+}
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,6 +45,9 @@ urlpatterns = [
     path("orders/", include("orders.urls", namespace="orders")),
     path("restaurants/", include("restaurants.urls", namespace="restaurants")),
     path('google8c6d73d201086114.html', TemplateView.as_view(template_name='google8c6d73d201086114.html')),
+
+    path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps_dict}, name='sitemap'),
 ]
 
 
