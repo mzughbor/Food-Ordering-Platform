@@ -22,7 +22,7 @@
     <meta property="og:title" content="{{ og_title|default:'Food Delivery PRO - Order Food Online' }}">
     <meta property="og:description" content="{{ og_description|default:'Order your favorite meals from nearby restaurants with fast delivery.' }}">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="{{ og_image|default:static('img/social-screenshot.jpg') }}">
+    <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}{% static 'img/social-screenshot.jpg' %}{% endif %}">
 
     {# Canonical URL — DYNAMIC (no hard-coded URLs anymore) #}
     <link rel="canonical" href="{{ request.build_absolute_uri|cut:'?'}}">
